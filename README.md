@@ -157,7 +157,7 @@ Because XP orbs are removed, **Mending has been reworked** to function without t
 
 **Default formula:**
 
-*Can be changed in a **Config** file*
+*Can be changed via **Config** file*
 
 ```
 1 XP level = 100 durability points
