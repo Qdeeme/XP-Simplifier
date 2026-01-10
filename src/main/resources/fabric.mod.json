@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "xp_simplifier",
+  "version": "1.0.1",
+  "name": "XP Simplifier",
+  "description": "Configurable XP Simplifier which prevents vanilla XP orb spawning and redirects all XP to the player",
+  "authors": ["qdeeme"],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/xp_simplifier/xp_simplifier_icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["qdeeme.xp_simplifier.xp_simplifier"]
+  },
+  "mixins": ["xp_simplifier.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.17.2",
+    "fabric": "*"
+  }
+}
