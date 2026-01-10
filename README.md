@@ -157,7 +157,7 @@ Because XP orbs are removed, **Mending has been reworked** to function without t
 
 **Default formula:**
 
-*Can be changed in a **Config** file*
+*Can be changed via **Config** file*
 
 ```
 1 XP level = 100 durability points
@@ -193,7 +193,7 @@ Lower values reduce the total XP cost for full repairs.
 
 ## 🧩 Compatibility
 
-- Minecraft **1.21.1** / **1.21.0**
+- Minecraft **1.20-1.20.6**
 - **Fabric**
 - Server-side friendly
 - Compatible with modded blocks, entities, and crops
