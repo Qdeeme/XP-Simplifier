@@ -311,8 +311,17 @@ public class Config {
 			lock.writeLock().unlock();
 		}
 	}
+	public static int getDurabilityPerLevel() {
+		lock.readLock().lock();
+		try {
+			return data.durabilityPerLevel;
+		} finally {
+			lock.readLock().unlock();
+		}
+	}
 
 	public static class ConfigData {
+		public int durabilityPerLevel = 100;
 		public int maxAnvilRepairCost = 40;
 		public boolean xpRepairEnabled = true;
 		public boolean blockBreakXpEnabled = true;

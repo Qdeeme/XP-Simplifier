@@ -81,7 +81,7 @@ public abstract class MixinMendingRework extends ForgingScreenHandler {
         // Get max cost from config
         int maxCost = Config.getMaxAnvilRepairCost();
         int finalCost = Math.min(levelsNeeded, maxCost);
-        int repairAmount = finalCost * 150;  
+        int repairAmount = finalCost * Config.getDurabilityPerLevel(); 
         
         // Apply repair
         int newDamage = Math.max(0, currentDamage - repairAmount);
