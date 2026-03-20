@@ -29,9 +29,10 @@ public class SmeltingHandler {
             RecipeManager recipeManager = server.getRecipeManager();
             int modified = 0;
 
-            for (Recipe<?> recipe : recipeManager.values()) {
+            for (var recipeEntry : recipeManager.values()) {
+                Recipe<?> recipe = recipeEntry.value();
                 if (recipe instanceof AbstractCookingRecipe cookingRecipe) {
-                    ItemStack output = cookingRecipe.getOutput(server.getRegistryManager());
+                    ItemStack output = cookingRecipe.getResult(server.getRegistryManager());
                     if (output.isEmpty()) {
                         continue;
                     }

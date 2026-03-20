@@ -43,7 +43,9 @@ public abstract class MixinFurnaceXp {
                 Identifier recipeId = entry.getKey();
                 int count = entry.getIntValue();
                 
-                Recipe<?> recipe = furnace.getWorld().getServer().getRecipeManager().get(recipeId).orElse(null);
+                var recipeEntry = furnace.getWorld().getServer().getRecipeManager().get(recipeId).orElse(null);
+                if (recipeEntry == null) continue;
+                Recipe<?> recipe = recipeEntry.value();
                 
                 if (recipe instanceof AbstractCookingRecipe cookingRecipe) {
                     totalXp += cookingRecipe.getExperience() * count;
