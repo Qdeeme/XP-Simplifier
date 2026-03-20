@@ -200,6 +200,12 @@ Lower values reduce the total XP cost for full repairs.
 
 ---
 
+## WIP:
+- Smelting/Cooking
+- Breeding
+- Fishing
+- Trading
+
 ## 📜 License
 
 This project is licensed under the **MIT License**.  
