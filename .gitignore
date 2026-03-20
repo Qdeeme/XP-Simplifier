@@ -37,10 +37,5 @@ bin
 *.iml
 *.iws
 
-# Eclipse files
-.project
-.classpath
-.settings/
-
 #vscode files
 .vscode
