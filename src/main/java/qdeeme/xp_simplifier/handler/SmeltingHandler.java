@@ -31,12 +31,12 @@ public class SmeltingHandler {
             for (var recipeEntry : recipeManager.values()) {
                 Recipe<?> recipe = recipeEntry.value();
                 if (recipe instanceof AbstractCookingRecipe cookingRecipe) {
-                    ItemStack output = cookingRecipe.getResult(server.getRegistryManager());
-                    if (output.isEmpty()) {
+                    ItemStack result = cookingRecipe.getResult(server.getRegistryManager());
+                    if (result.isEmpty()) {
                         continue;
                     }
 
-                    String productId = Registries.ITEM.getId(output.getItem()).toString();
+                    String productId = Registries.ITEM.getId(result.getItem()).toString();
                     float override = Config.getRecipeXp(productId);
 
                     if (override >= 0) {
