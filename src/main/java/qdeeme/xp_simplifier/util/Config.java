@@ -33,6 +33,20 @@ public class Config {
 	private static final ReadWriteLock lock = new ReentrantReadWriteLock();
 
 	private static ConfigData data = new ConfigData();
+	
+	// Index maps for O(1) lookups
+	private static final Map<String, XpValue> entityIndex = new LinkedHashMap<>();
+	private static final Map<String, XpValue> blockIndex = new LinkedHashMap<>();
+	private static final Map<String, CropXpData> cropIndex = new LinkedHashMap<>();
+	private static final Map<String, Float> recipeIndex = new LinkedHashMap<>();
+	
+	// Flags for quick checks
+	private static int durabilityPerLevelFlag;
+	private static int maxAnvilRepairCostFlag;
+	private static boolean xpRepairEnabledFlag;
+	private static boolean blockBreakXpEnabledFlag;
+	private static boolean entityKillXpEnabledFlag;
+	private static boolean xpSmeltingEnabledFlag;
 
 	public static void load() {
 		lock.writeLock().lock();
@@ -70,10 +84,10 @@ public class Config {
 			}
 
 			// Load category files
-			loadCategoryFile(BLOCKS_CONFIG_PATH, "Blocks", data.Blocks);
-			loadCategoryFile(CROPS_CONFIG_PATH, "Crops", null);
-			loadCategoryFile(ENTITIES_CONFIG_PATH, "Entities", data.Entities);
-			loadCategoryFile(SMELTING_CONFIG_PATH, "SmeltingXp", data.SmeltingXp);
+			loadCategoryFile(BLOCKS_CONFIG_PATH, "Blocks");
+			loadCategoryFile(CROPS_CONFIG_PATH, "Crops");
+			loadCategoryFile(ENTITIES_CONFIG_PATH, "Entities");
+			loadCategoryFile(SMELTING_CONFIG_PATH, "SmeltingXp");
 
 			// Check if files are empty and need defaults
 			if ((data.Blocks == null || data.Blocks.isEmpty()) &&
@@ -84,7 +98,12 @@ public class Config {
 				data.initializeDefaults();
 				needsSave = true;
 			}
+			
+			// Always build indexes and update flags after loading
+			buildIndexes();
+			updateFlags();
 
+			// Save initial config if default or invalid
 			if (needsSave) {
 				saveInternal();
 			}
@@ -97,40 +116,45 @@ public class Config {
 		}
 	}
 
-	private static void loadCategoryFile(Path path, String categoryName, Object target) {
+	private static void loadCategoryFile(Path path, String categoryName) {
 		if (!Files.exists(path)) {
 			return;
 		}
 
 		try {
 			String json = Files.readString(path);
-			if (categoryName.equals("Blocks")) {
-				Map<String, BlockCategory> loaded = GSON.fromJson(json, 
-					new TypeToken<Map<String, BlockCategory>>(){}.getType());
-				if (loaded != null) {
-					data.Blocks = loaded;
-					LOGGER.debug("Loaded Blocks config");
+			switch (categoryName) {
+				case "Blocks" -> {
+					Map<String, BlockCategory> loaded = GSON.fromJson(json, 
+						new TypeToken<Map<String, BlockCategory>>(){}.getType());
+					if (loaded != null) {
+						data.Blocks = loaded;
+						LOGGER.debug("Loaded Blocks config");
+					}
 				}
-			} else if (categoryName.equals("Crops")) {
-				Map<String, CropCategory> loaded = GSON.fromJson(json,
-					new TypeToken<Map<String, CropCategory>>(){}.getType());
-				if (loaded != null) {
-					data.Crops = loaded;
-					LOGGER.debug("Loaded Crops config");
+				case "Crops" -> {
+					Map<String, CropCategory> loaded = GSON.fromJson(json,
+						new TypeToken<Map<String, CropCategory>>(){}.getType());
+					if (loaded != null) {
+						data.Crops = loaded;
+						LOGGER.debug("Loaded Crops config");
+					}
 				}
-			} else if (categoryName.equals("Entities")) {
-				Map<String, EntitiesCategory> loaded = GSON.fromJson(json,
-					new TypeToken<Map<String, EntitiesCategory>>(){}.getType());
-				if (loaded != null) {
-					data.Entities = loaded;
-					LOGGER.debug("Loaded Entities config");
+				case "Entities" -> {
+					Map<String, EntitiesCategory> loaded = GSON.fromJson(json,
+						new TypeToken<Map<String, EntitiesCategory>>(){}.getType());
+					if (loaded != null) {
+						data.Entities = loaded;
+						LOGGER.debug("Loaded Entities config");
+					}
 				}
-			} else if (categoryName.equals("SmeltingXp")) {
-				Map<String, SmeltingCategory> loaded = GSON.fromJson(json,
-					new TypeToken<Map<String, SmeltingCategory>>(){}.getType());
-				if (loaded != null) {
-					data.SmeltingXp = loaded;
-					LOGGER.debug("Loaded SmeltingXp config");
+				case "SmeltingXp" -> {
+					Map<String, SmeltingCategory> loaded = GSON.fromJson(json,
+						new TypeToken<Map<String, SmeltingCategory>>(){}.getType());
+					if (loaded != null) {
+						data.SmeltingXp = loaded;
+						LOGGER.debug("Loaded SmeltingXp config");
+					}
 				}
 			}
 		} catch (JsonSyntaxException e) {
@@ -139,7 +163,61 @@ public class Config {
 			LOGGER.error("Failed to load {} config", categoryName, e);
 		}
 	}
+	
+	private static void buildIndexes() {
+		entityIndex.clear();
+		blockIndex.clear();
+		cropIndex.clear();
+		recipeIndex.clear();
+		
+		// Index all entities
+		if (data.Entities != null) {
+			for (EntitiesCategory category : data.Entities.values()) {
+				if (category.entities != null) {
+					entityIndex.putAll(category.entities);
+				}
+			}
+		}
+		
+		// Index all blocks
+		if (data.Blocks != null) {
+			for (BlockCategory category : data.Blocks.values()) {
+				if (category.blocks != null) {
+					blockIndex.putAll(category.blocks);
+				}
+			}
+		}
+		
+		// Index all crops
+		if (data.Crops != null) {
+			for (CropCategory category : data.Crops.values()) {
+				if (category.crops != null) {
+					cropIndex.putAll(category.crops);
+				}
+			}
+		}
+		
+		// Index all recipes
+		if (data.SmeltingXp != null) {
+			for (SmeltingCategory category : data.SmeltingXp.values()) {
+				if (category.smelting != null) {
+					recipeIndex.putAll(category.smelting);
+				}
+			}
+		}
+	}
+	
+	private static void updateFlags() {
+		durabilityPerLevelFlag = data.durabilityPerLevel;
+		maxAnvilRepairCostFlag = data.maxAnvilRepairCost;
+		xpRepairEnabledFlag = data.xpRepairEnabled;
+		blockBreakXpEnabledFlag = data.blockBreakXpEnabled;
+		entityKillXpEnabledFlag = data.entityKillXpEnabled;
+		xpSmeltingEnabledFlag = data.xpSmeltingEnabled;
+	}
 
+	// Config is static after load()
+	// save() kept for future use
 	public static void save() {
 		lock.writeLock().lock();
 		try {
@@ -193,48 +271,23 @@ public class Config {
 	}
 
 	public static boolean isSmeltingXpEnabled() {
-		lock.readLock().lock();
-		try {
-			return data.xpSmeltingEnabled;
-		} finally {
-			lock.readLock().unlock();
-		}
+		return xpSmeltingEnabledFlag;
 	}
 
 	public static boolean isXpRepairEnabled() {
-		lock.readLock().lock();
-		try {
-			return data.xpRepairEnabled;
-		} finally {
-			lock.readLock().unlock();
-		}
+		return xpRepairEnabledFlag;
 	}
 
 	public static int getMaxAnvilRepairCost() {
-		lock.readLock().lock();
-		try {
-			return data.maxAnvilRepairCost;
-		} finally {
-			lock.readLock().unlock();
-		}
+		return maxAnvilRepairCostFlag;
 	}
 
 	public static boolean isBlockBreakXpEnabled() {
-		lock.readLock().lock();
-		try {
-			return data.blockBreakXpEnabled;
-		} finally {
-			lock.readLock().unlock();
-		}
+		return blockBreakXpEnabledFlag;
 	}
 
 	public static boolean isEntityKillXpEnabled() {
-		lock.readLock().lock();
-		try {
-			return data.entityKillXpEnabled;
-		} finally {
-			lock.readLock().unlock();
-		}
+		return entityKillXpEnabledFlag;
 	}
 
 
@@ -243,19 +296,9 @@ public class Config {
 			return -1.0f;
 		}
 
-		lock.readLock().lock();
-		try {
-			if (data.SmeltingXp != null) {
-				for (SmeltingCategory category : data.SmeltingXp.values()) {
-					if (category.smelting != null && category.smelting.containsKey(productId)) {
-						return category.smelting.get(productId);
-					}
-				}
-			}
-			return -1.0f;
-		} finally {
-			lock.readLock().unlock();
-		}
+		// immutable map
+		Float value = recipeIndex.get(productId);
+		return value != null ? value : -1.0f;
 	}
 
 	// Get block XP with age check (for crops)
@@ -264,37 +307,23 @@ public class Config {
 			return -1;
 		}
 
-		lock.readLock().lock();
-		try {
-			// First check crops (which have age requirements)
-			if (data.Crops != null) {
-				for (CropCategory category : data.Crops.values()) {
-					if (category.crops != null && category.crops.containsKey(blockId)) {
-						CropXpData cropData = category.crops.get(blockId);
-						
-						// Check if crop is mature enough
-						if (currentAge < cropData.matureAge) {
-							return 0;
-						}
-						
-						return cropData.xp.calculateXp();
-					}
-				}
+		// First check crops (which have age requirements)
+		CropXpData cropData = cropIndex.get(blockId);
+		if (cropData != null) {
+			// Check if crop is mature enough
+			if (currentAge < cropData.matureAge) {
+				return 0;
 			}
-			
-			// Then check regular blocks (no age requirement)
-			if (data.Blocks != null) {
-				for (BlockCategory category : data.Blocks.values()) {
-					if (category.blocks != null && category.blocks.containsKey(blockId)) {
-						return category.blocks.get(blockId).calculateXp();
-					}
-				}
-			}
-
-			return -1;
-		} finally {
-			lock.readLock().unlock();
+			return cropData.xp.calculateXp();
 		}
+		
+		// Then check regular blocks (no age requirement)
+		XpValue blockValue = blockIndex.get(blockId);
+		if (blockValue != null) {
+			return blockValue.calculateXp();
+		}
+
+		return -1;
 	}
 
 	// Overload for blocks without age
@@ -302,27 +331,15 @@ public class Config {
 		return getBlockXp(blockId, -1);
 	}
 
-	// Get entity XP - returns config value if entity is in config, or -1 if not in config
+	// Get entity XP - value or -1 if not found
 	public static int getEntityXp(String entityId) {
 		if (entityId == null) {
 			return -1; // Not in config
 		}
 
-		lock.readLock().lock();
-		try {
-			if (data.Entities != null) {
-				for (EntitiesCategory category : data.Entities.values()) {
-					if (category.entities != null && category.entities.containsKey(entityId)) {
-						XpValue xpValue = category.entities.get(entityId);
-						return xpValue.calculateXp();
-					}
-				}
-			}
-
-			return -1; // Entity not found in config
-		} finally {
-			lock.readLock().unlock();
-		}
+		// Immutable map
+		XpValue xpValue = entityIndex.get(entityId);
+		return xpValue != null ? xpValue.calculateXp() : -1;
 	}
 
 
@@ -332,19 +349,8 @@ public class Config {
 			return false;
 		}
 
-		lock.readLock().lock();
-		try {
-			if (data.Entities != null) {
-				for (EntitiesCategory category : data.Entities.values()) {
-					if (category.entities != null && category.entities.containsKey(entityId)) {
-						return true;
-					}
-				}
-			}
-			return false;
-		} finally {
-			lock.readLock().unlock();
-		}
+		// Immutable map
+		return entityIndex.containsKey(entityId);
 	}
 
 	public static void setBlockXp(String category, String blockId, int min, int max) {
@@ -367,12 +373,9 @@ public class Config {
 				blockCategory.blocks = new LinkedHashMap<>();
 			}
 			
-			if (min == max) {
-				blockCategory.blocks.put(blockId, new XpValue(min));
-			} else {
-				blockCategory.blocks.put(blockId, new XpValue(min, max));
-			}
-			save();
+			XpValue xpValue = min == max ? new XpValue(min) : new XpValue(min, max);
+			blockCategory.blocks.put(blockId, xpValue);
+			blockIndex.put(blockId, xpValue);
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -398,12 +401,9 @@ public class Config {
 				cropCategory.crops = new LinkedHashMap<>();
 			}
 			
-			if (min == max) {
-				cropCategory.crops.put(blockId, new CropXpData(matureAge, min));
-			} else {
-				cropCategory.crops.put(blockId, new CropXpData(matureAge, min, max));
-			}
-			save();
+			CropXpData cropData = min == max ? new CropXpData(matureAge, min) : new CropXpData(matureAge, min, max);
+			cropCategory.crops.put(blockId, cropData);
+			cropIndex.put(blockId, cropData);
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -429,12 +429,9 @@ public class Config {
 				entitiesCategory.entities = new LinkedHashMap<>();
 			}
 			
-			if (min == max) {
-				entitiesCategory.entities.put(entityId, new XpValue(min));
-			} else {
-				entitiesCategory.entities.put(entityId, new XpValue(min, max));
-			}
-			save();
+			XpValue xpValue = min == max ? new XpValue(min) : new XpValue(min, max);
+			entitiesCategory.entities.put(entityId, xpValue);
+			entityIndex.put(entityId, xpValue);
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -455,23 +452,18 @@ public class Config {
 				category,
 				k -> new SmeltingCategory());
 			
-				if (smeltingCategory.smelting == null) {
-					smeltingCategory.smelting = new LinkedHashMap<>();
-				}
-				smeltingCategory.smelting.put(productId, xp);
-				save();
+			if (smeltingCategory.smelting == null) {
+				smeltingCategory.smelting = new LinkedHashMap<>();
+			}
+			smeltingCategory.smelting.put(productId, xp);
+			recipeIndex.put(productId, xp);
 		} finally {
 			lock.writeLock().unlock();
 		}
 	}
 
 	public static int getDurabilityPerLevel() {
-		lock.readLock().lock();
-		try {
-			return data.durabilityPerLevel;
-		} finally {
-			lock.readLock().unlock();
-		}
+		return durabilityPerLevelFlag;
 	}
 
 	public static class ConfigData {
@@ -493,6 +485,7 @@ public class Config {
 		public Map<String, CropCategory> Crops = new LinkedHashMap<>();
 
 		public ConfigData() {
+			// Initialize maps eagerly
 			if (Blocks == null) {
 				Blocks = new LinkedHashMap<>();
 			}
@@ -508,6 +501,7 @@ public class Config {
 		}
 
 		public void initializeDefaults() {
+			// Ensure all maps are initialized
 			if (Blocks == null) {
 				Blocks = new LinkedHashMap<>();
 			}
@@ -525,14 +519,14 @@ public class Config {
 		}
 
 		private void addDefaultCategories() {
-			// Items category
+			// Entity items category
 			EntitiesCategory xpBottle = new EntitiesCategory();
 			xpBottle.entities = new LinkedHashMap<>();
 			xpBottle.entities.put("minecraft:experience_bottle", new XpValue(3, 11));
 			Entities.put("Items", xpBottle);
 
 			
-			// Hostile Mobs - ONLY Fixed/Random values (no passive mobs - they'll use vanilla XP)
+			// Hostile Mobs 
 			EntitiesCategory hostileMobs = new EntitiesCategory();
 			hostileMobs.entities = new LinkedHashMap<>();
 			hostileMobs.entities.put("minecraft:ender_dragon", new XpValue(2000, 3500));
@@ -555,6 +549,7 @@ public class Config {
 			hostileMobs.entities.put("minecraft:witch", new XpValue(5, 10));
 			Entities.put("Hostile Mobs", hostileMobs);
 
+			// Passive Mobs
 			EntitiesCategory passiveMobs = new EntitiesCategory();
 			passiveMobs.entities = new LinkedHashMap<>();
 			passiveMobs.entities.put("minecraft:cow", new XpValue(1, 3));
@@ -624,7 +619,7 @@ public class Config {
 			Crops.put("Minecraft Crops", crops);
 
 
-			// Smelting/cooking xp per recipe 
+			// Smelting/cooking xp per recipe based on product
 			SmeltingCategory smeltingOres = new SmeltingCategory();
 			smeltingOres.smelting = new LinkedHashMap<>();
 			smeltingOres.smelting.put("minecraft:iron_ingot", 0.7f);
@@ -759,28 +754,26 @@ public class Config {
 		}
 
 		public int calculateXp() {
-			if (type == null) {
+			if (type == null || type.isEmpty()) {
 				type = "Fixed";
 			}
 
-			switch (type) {
-				case "Fixed" -> {
-					return fixed != null ? fixed : 0;
-				}
+			return switch (type) {
+				case "Fixed" -> fixed == null ? 0 : fixed;
 				case "Random" -> {
 					if (min == null || max == null || min < 0 || max < min) {
-						return 0;
+						yield 0;
 					}
 					if (min.equals(max)) {
-						return min;
+						yield min;
 					}
-					return min + RANDOM.nextInt(max - min + 1);
+					yield min + RANDOM.nextInt(max - min + 1);
 				}
 				default -> {
 					LOGGER.warn("Unknown XP value type: {}, defaulting to 0", type);
-					return 0;
+					yield 0;
 				}
-			}
+			};
 		}
 	}
 }

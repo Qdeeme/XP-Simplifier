@@ -1,17 +1,15 @@
 package qdeeme.xp_simplifier.handler;
 
 
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-
-import net.minecraft.recipe.AbstractCookingRecipe;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.recipe.RecipeManager;
-import net.minecraft.registry.Registries;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.minecraft.item.ItemStack;
+import net.minecraft.recipe.AbstractCookingRecipe;
+import net.minecraft.recipe.Recipe;
+import net.minecraft.recipe.RecipeManager;
+import net.minecraft.registry.Registries;
 import qdeeme.xp_simplifier.mixin.RecipeXpAccess;
 import qdeeme.xp_simplifier.util.Config;
 
@@ -21,6 +19,7 @@ public class SmeltingHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger("xp_simplifier/SmeltingHandler");
 
     public static void register() {
+        LOGGER.info("Registered smelting XP handler");
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             if (!Config.isSmeltingXpEnabled()) {
                 return;
