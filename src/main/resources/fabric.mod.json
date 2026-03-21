@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "xp_simplifier",
-  "version": "1.0.1-1.20.2-4",
+  "version": "1.0.2-1.20.2-4",
   "name": "XP Simplifier",
   "description": "Configurable XP Simplifier which prevents vanilla XP orb spawning and redirects all XP to the player",
   "authors": ["qdeeme"],
