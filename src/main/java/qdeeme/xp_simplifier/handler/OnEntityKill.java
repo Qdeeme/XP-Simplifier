@@ -13,11 +13,17 @@ import qdeeme.xp_simplifier.util.Config;
 
 
 
+
 public class OnEntityKill {
 	private static final Logger LOGGER = LoggerFactory.getLogger("xp_simplifier/OnEntityKill");
 
 	public static void register() {
 		ServerLivingEntityEvents.AFTER_DEATH.register((LivingEntity entity, DamageSource source) -> {
+
+			if (!Config.isEntityKillXpEnabled()) {
+				return;
+			}
+
 			// Check if killed by a player
 			if (!(source.getAttacker() instanceof ServerPlayerEntity serverPlayer)) {
 				return;
@@ -31,26 +37,17 @@ public class OnEntityKill {
 			String entityId = Registries.ENTITY_TYPE.getId(entity.getType()).toString();
 			int xp = 0;
 
-			// If entity kill XP is enabled, use config system
-			if (Config.isEntityKillXpEnabled()) {
-				// Check if entity has custom config
-				if (Config.hasEntityXpConfig(entityId)) {
-					// Use config value (could be 0 to disable, or positive for custom)
-					xp = Config.getEntityXp(entityId);
-					LOGGER.debug("Using config XP for {}: {}", entityId, xp);
-				} else {
-					// Entity not in config, fallback to vanilla XP
-					xp = entity.getXpToDrop();
-					LOGGER.debug("Using vanilla XP for {}: {}", entityId, xp);
-				}
+		// If entity kill XP is enabled, use config system
+		if (Config.isEntityKillXpEnabled()) {
+			if (Config.hasEntityXpConfig(entityId)) {
+				xp = Config.getEntityXp(entityId);
 			} else {
-				// Entity kill XP is disabled, always use vanilla
+				// Entity not in config, give vanilla
 				xp = entity.getXpToDrop();
 			}
-
-			// Give XP if any
-			if (xp > 0) {
-				serverPlayer.addExperience(xp);
+				if (xp > 0) {
+					serverPlayer.addExperience(xp);
+				}
 			}
 		});
 

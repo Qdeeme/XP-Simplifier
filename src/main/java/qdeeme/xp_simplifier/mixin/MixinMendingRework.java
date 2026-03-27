@@ -52,7 +52,7 @@ public abstract class MixinMendingRework extends ForgingScreenHandler {
             return;
         }
         
-        // Check for mending enchantment (1.20.1 method)
+        // Check for mending enchantment
         int mendingLevel = EnchantmentHelper.getLevel(Enchantments.MENDING, leftStack);
         if (mendingLevel <= 0) {
             return;
@@ -67,21 +67,17 @@ public abstract class MixinMendingRework extends ForgingScreenHandler {
         }
 
         // Calculate levels needed for repair 
-        // Each level repairs 100 durability (configurable via repairAmount calculation)
         int levelsNeeded = MathHelper.ceil((float) currentDamage / 100.0F);
         
         // Get max cost from config
         int maxCost = Config.getMaxAnvilRepairCost();
         int finalCost = Math.min(levelsNeeded, maxCost);
-        int repairAmount = finalCost * Config.getDurabilityPerLevel(); // use config value
-        
-        // Apply repair
+        int repairAmount = finalCost * Config.getDurabilityPerLevel();
         int newDamage = Math.max(0, currentDamage - repairAmount);
         resultStack.setDamage(newDamage);
         
         // Set output stack
         this.output.setStack(0, resultStack);
-        
         // Set the XP cost
         this.levelCost.set(finalCost);
     }
