@@ -1,6 +1,8 @@
 package qdeeme.xp_simplifier.handler;
 
 
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,10 +11,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.hit.HitResult;
-
 import qdeeme.xp_simplifier.util.Config;
-
-import java.util.UUID;
 
 
 public class ExperienceBottleHandler {
@@ -28,7 +27,6 @@ public class ExperienceBottleHandler {
 		}
 
 		try {
-			// Get the owner UUID from NBT
 			NbtCompound nbt = new NbtCompound();
 			bottle.writeNbt(nbt);
 
@@ -55,7 +53,6 @@ public class ExperienceBottleHandler {
 			ServerPlayerEntity owner = world.getServer().getPlayerManager().getPlayer(ownerUuid);
 
 			if (owner != null) {
-				// Get XP from config
 				int xp = Config.getEntityXp("minecraft:experience_bottle");
 				
 				if (xp <= 0) {
@@ -64,8 +61,6 @@ public class ExperienceBottleHandler {
 				}
 
 				owner.addExperience(xp);
-			} else {
-				return;
 			}
 		} catch (Exception e) {
 			LOGGER.error("Failed to handle experience bottle XP", e);

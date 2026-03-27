@@ -1,18 +1,16 @@
 package qdeeme.xp_simplifier.handler;
 
 
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-
-import net.minecraft.recipe.AbstractCookingRecipe;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.recipe.RecipeManager;
-import net.minecraft.registry.Registries;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import qdeeme.xp_simplifier.mixin.RecipeXpAccess;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.minecraft.item.ItemStack;
+import net.minecraft.recipe.AbstractCookingRecipe;
+import net.minecraft.recipe.Recipe;
+import net.minecraft.recipe.RecipeManager;
+import net.minecraft.registry.Registries;
+import qdeeme.xp_simplifier.mixin.RecipeXpAccessor;
 import qdeeme.xp_simplifier.util.Config;
 
 
@@ -21,6 +19,7 @@ public class SmeltingHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger("xp_simplifier/SmeltingHandler");
 
     public static void register() {
+        LOGGER.info("Registered smelting XP handler");
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             if (!Config.isSmeltingXpEnabled()) {
                 return;
@@ -31,16 +30,16 @@ public class SmeltingHandler {
 
             for (Recipe<?> recipe : recipeManager.values()) {
                 if (recipe instanceof AbstractCookingRecipe cookingRecipe) {
-                    ItemStack output = cookingRecipe.getOutput(server.getRegistryManager());
-                    if (output.isEmpty()) {
+                    ItemStack result = cookingRecipe.getOutput(server.getRegistryManager());
+                    if (result.isEmpty()) {
                         continue;
                     }
 
-                    String productId = Registries.ITEM.getId(output.getItem()).toString();
+                    String productId = Registries.ITEM.getId(result.getItem()).toString();
                     float override = Config.getRecipeXp(productId);
 
                     if (override >= 0) {
-                        RecipeXpAccess accessor = (RecipeXpAccess) cookingRecipe;
+                        RecipeXpAccessor accessor = (RecipeXpAccessor) cookingRecipe;
                         float original = accessor.getExperience();
                         accessor.setExperience(override);
                         modified++;
