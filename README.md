@@ -1,169 +1,72 @@
 # 🧪 Configurable XP Simplifier
 
-A **Fabric** mod for **Minecraft 1.21.1** focused on removing XP orbs, simplifying XP collection, and providing **full control over XP sources and values**.
+A **Fabric** mod focused on removing XP orbs, simplifying XP collection, and providing **full control over XP sources and values**.
 
 All XP is redirected **directly to the player**, improving performance and making XP behavior predictable and configurable.
 
----
 
 ## 🎯 Prime Goals
 
-- Completely remove **XP orbs**
-- Redirect all dropped XP straight to the player
-- Simplify the XP collecting mechanic
-- Provide full control over:
-  - XP sources
-  - XP values
-  - XP behavior for blocks, entities, and crops
+*   Completely remove **XP orbs**
+*   Redirect all dropped XP straight to the player
+*   Simplify the XP collecting mechanic
+*   Provide full control over:
+    *   XP sources
+    *   XP values
+    *   XP behavior for blocks/entities/crops/etc.
 
----
-
-## ⚙️ Core Options
-
-```json
-"blockBreakXpEnabled": true | false,
-"entityKillXpEnabled": true | false
-```
-
-### Behavior Overview
-
-- Setting **either option to `true`**
-  - Cancels vanilla XP orb spawning
-- Setting **both options to `false`**
-  - Disables the mod’s core logic
-  - XP orbs spawn and behave normally
-
----
-
-## ⛏️ Block XP (`blockBreakXpEnabled`)
-
-- `true`
-  - All blocks and crops (if configured) may grant XP
-  - Works with vanilla and modded blocks
-- `false`
-  - No XP is granted from block breaking
-  - Even vanilla ores grant no XP
-
----
-
-## 🧟 Entity XP (`entityKillXpEnabled`)
-
-- `true`
-  - Entities grant XP based on configuration
-  - If an entity is **not defined**, default XP values are used
-- `false`
-  - Entities grant XP using vanilla default values
-
-> ⚠️ **Enchanting Bottles**  
-> When XP orbs are disabled, Enchanting Bottles are also affected.  
-> Keep `entityKillXpEnabled = true` if you want them to work "correctly".
-
----
+***
+***
 
 ## 🧩 Configuration Categories
 
-The config is split into **three main categories**:
+The config is split into **few categories**:
 
-- **Blocks**
-- **Entities**
-- **Crops**
+*   **Blocks.json**
+*   **Entities.json**
+*   **Crops.json**
+*   **Smelting.json**
+*   **Trading.json**
+
+More soon.
 
 Each category may contain **subcategories**.  
-Subcategories are ignored by the mod logic and exist purely to keep the config **clean and tidy**.
+Subcategories exist purely to keep the config **clean and tidy**.
 
----
-
-## 📦 Blocks / Entities Configuration Structure
-
-```json
-"[Blocks | Entities]": {
-  "[subcategory]": {
-    "blocks | entities": {
-      "modid:block_id | modid:entity_id": {
-        "type": "Random | Fixed",
-
-        // If type = Random
-        "min": 0,
-        "max": 0,
-
-        // If type = Fixed
-        "fixed": 0
-      }
-    }
-  }
-}
-```
-
----
-
-## 🌾 Crops Configuration Structure
-
-Crops are handled differently due to the **Age property**.
-
-```json
-"Crops": {
-  "[subcategory]": {
-    "crops": {
-      "modid:block_id": {
-        "matureAge": [value of mature crop],
-        "xp": {
-          "type": "Random | Fixed",
-
-          // If type = Random
-          "min": 0,
-          "max": 0,
-
-          // If type = Fixed
-          "fixed": 0
-        }
-      }
-    }
-  }
-}
-```
-
----
+***
 
 ## 🎲 XP Calculation Types
 
 Two XP calculation methods are supported:
 
-- **Random**
-  - Grants a random amount of XP between `min` and `max`
-- **Fixed**
-  - Grants a fixed amount of XP
-  - `0` means no XP is granted
+*   **Random**
+    *   Grants a random amount of XP between `min` and `max`
+*   **Fixed**
+    *   Grants a fixed amount of XP
+    *   `0` means no XP is granted
 
----
+***
 
 ## 🔧 Mending Rework (Anvil-Based)
 
 Because XP orbs are removed, **Mending has been reworked** to function without them while remaining balanced.
 
-### Settings
-
-```json
-"xpRepairEnabled": true | false,
-"maxAnvilRepairCost": 40
-```
-
----
 
 ### 🔨 How Mending Works
 
-- Items with **Mending** can be repaired in an **Anvil**
-- No additional items are required
-- Repair cost is **XP only**
+*   Items with **Mending** can be repaired in an **Anvil**
+*   No additional items are required
+*   Repair cost is **XP only**
 
 **Default formula:**
 
-*Can be changed via **Config** file*
+_can be changed via **Config** file_
 
 ```
 1 XP level = 100 durability points
 ```
 
----
+***
 
 ### 📉 Max Cap Behavior
 
@@ -175,42 +78,62 @@ Because XP orbs are removed, **Mending has been reworked** to function without t
 Diamond Sword durability: 1561
 ```
 
-| maxAnvilRepairCost | XP Levels Needed |
-|--------------------|-----------------|
-| 40 (default)       | 16 levels       |
-| 10                 | 10 levels       |
+| maxAnvilRepairCost |XP Levels Needed |
+| ------------------ |---------------- |
+| 40 (default)       |16 levels        |
+| 10                 |10 levels        |
 
 Lower values reduce the total XP cost for full repairs.
 
----
+***
 
 ### ⚠️ Important
 
-- Setting `"xpRepairEnabled": false`
-  - **Disables Mending completely if orbs are canceled**
+*   Setting `"xpRepairEnabled": false`
+    *   **Disables Mending completely if orbs are canceled**
 
----
+***
 
 ## 🧩 Compatibility
 
-- Minecraft **1.21.1** / **1.21.0**
-- **Fabric**
-- Server-side friendly
-- Compatible with modded blocks, entities, and crops
+*   Minecraft **1.20-1.21.1**
+*   **Fabric**
+*   Server-side friendly
+*   Compatible with modded blocks/entities/etc
 
----
+***
 
 ## WIP:
-- Smelting/Cooking
-- Breeding
-- Fishing
-- Trading
+Still under development, more options will be added soon. 
+
+Do you want to know more? Visit wiki -> [HERE](https://github.com/Qdeeme/XP-Simplifier/wiki)
+
+
+***
+
+## TL;DR
+VERSIONS 1.0.+ :
+- Once updated to newer version -> create a backup of your existing configs and delete whole folder. Let the mod initialize the defaults and then replace all new maps with yours but be careful, few changes were made to versions 1.1+ :)
+
+
+
+## KNOWN ISSUE:
+- Create's experience nuggets don't work
+
+- [XP Storage books](https://modrinth.com/mod/xp-storage) - NO COMPATIBILITY ->
+Use [Tomes of Experience](https://modrinth.com/mod/tomes-of-experience) instead
+
+- RightClickHarvest - NO COMPATIBILITY
+
+*If you found a bug/no compatibility issue, let me know [HERE](https://github.com/Qdeeme/XP-Simplifier/issues)*
+
+***
 
 ## 📜 License
 
 This project is licensed under the **MIT License**.  
 You are free to use, modify, and include it in modpacks.
 
----
+***
 
-⭐ If you find this mod useful, consider starring the repository!
+⭐ If you find this mod useful, consider following the mod!
