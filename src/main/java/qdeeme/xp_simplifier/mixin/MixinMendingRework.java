@@ -51,10 +51,7 @@ public abstract class MixinMendingRework extends ForgingScreenHandler {
         }
         
         // Get mending enchantment
-        var enchantmentRegistry = serverPlayer.getServer()
-            .getRegistryManager()
-            .get(RegistryKeys.ENCHANTMENT);
-        
+        var enchantmentRegistry = serverPlayer.getServer().getRegistryManager().get(RegistryKeys.ENCHANTMENT);
         var mendingEntry = enchantmentRegistry.getEntry(Enchantments.MENDING);
         
         if (mendingEntry.isEmpty()) {
@@ -75,7 +72,6 @@ public abstract class MixinMendingRework extends ForgingScreenHandler {
             return;
         }
 
-        // Calculate levels needed for repair 
         int levelsNeeded = MathHelper.ceil((float) currentDamage / 100.0F);
         
         // Get max cost from config
@@ -87,10 +83,7 @@ public abstract class MixinMendingRework extends ForgingScreenHandler {
         int newDamage = Math.max(0, currentDamage - repairAmount);
         resultStack.setDamage(newDamage);
         
-        // Set output stack
         this.output.setStack(0, resultStack);
-        
-        // Set the XP cost
         this.levelCost.set(finalCost);
     }
 }

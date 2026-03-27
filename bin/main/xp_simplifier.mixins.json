@@ -7,6 +7,10 @@
   "mixins": [
     "MixinServerWorld",
     "MixinExperienceBottle",
-    "MixinMendingRework"
+    "MixinMendingRework",
+    "RecipeXpAccessor",
+    "MixinFurnaceXp",
+    "TradeOfferAccessor",
+    "MixinMerchantEntity"
   ]
 }

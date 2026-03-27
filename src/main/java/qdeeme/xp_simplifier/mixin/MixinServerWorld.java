@@ -19,13 +19,9 @@ public class MixinServerWorld {
             return;
         }
 
-        boolean blockXpEnabled = Config.isBlockBreakXpEnabled();
-        boolean entityXpEnabled = Config.isEntityKillXpEnabled();
-
-        // If both are enabled, prevent all natural XP orbs
-        // If only one is enabled, prevent XP orbs (mod handles it)
-        // If both are disabled, allow natural XP orbs
-        if (blockXpEnabled || entityXpEnabled) {
+        // Block all XP orbs if orbsEnabled is false (global setting)
+        // Handlers are responsible for checking their own enabled flags
+        if (!Config.isOrbsEnabled()) {
             cir.setReturnValue(false);
         }
     }
