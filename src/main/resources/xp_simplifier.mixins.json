@@ -8,7 +8,9 @@
     "MixinServerWorld",
     "MixinExperienceBottle",
     "MixinMendingRework",
-    "RecipeXpAccess",
-    "MixinFurnaceXp"
+    "RecipeXpAccessor",
+    "MixinFurnaceXp",
+    "TradeOfferAccessor",
+    "MixinMerchantEntity"
   ]
 }

@@ -56,8 +56,6 @@ public abstract class MixinFurnaceXp {
         if (totalXp > 0) {
             // Round to nearest integer
             int xpAmount = MathHelper.floor(totalXp);
-            
-            // Give XP directly to player
             serverPlayer.addExperience(xpAmount);
         }
 

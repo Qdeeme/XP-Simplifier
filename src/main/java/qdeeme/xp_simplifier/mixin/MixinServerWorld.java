@@ -1,16 +1,13 @@
 package qdeeme.xp_simplifier.mixin;
 
-
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.ExperienceOrbEntity;
+import net.minecraft.server.world.ServerWorld;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.ExperienceOrbEntity;
-import net.minecraft.server.world.ServerWorld;
 import qdeeme.xp_simplifier.util.Config;
-
 
 @Mixin(ServerWorld.class)
 public class MixinServerWorld {
@@ -22,13 +19,8 @@ public class MixinServerWorld {
             return;
         }
 
-        boolean blockXpEnabled = Config.isBlockBreakXpEnabled();
-        boolean entityXpEnabled = Config.isEntityKillXpEnabled();
-
-        // If both are enabled, prevent all natural XP orbs
-        // If only one is enabled, prevent XP orbs (mod handles it)
-        // If both are disabled, allow natural XP orbs
-        if (blockXpEnabled || entityXpEnabled) {
+        // Block all XP orbs if orbsEnabled is false (global setting)
+        if (!Config.isOrbsEnabled()) {
             cir.setReturnValue(false);
         }
     }

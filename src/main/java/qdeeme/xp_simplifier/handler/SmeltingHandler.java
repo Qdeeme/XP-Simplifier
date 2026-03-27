@@ -10,7 +10,7 @@ import net.minecraft.recipe.AbstractCookingRecipe;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeManager;
 import net.minecraft.registry.Registries;
-import qdeeme.xp_simplifier.mixin.RecipeXpAccess;
+import qdeeme.xp_simplifier.mixin.RecipeXpAccessor;
 import qdeeme.xp_simplifier.util.Config;
 
 
@@ -40,7 +40,7 @@ public class SmeltingHandler {
                     float override = Config.getRecipeXp(productId);
 
                     if (override >= 0) {
-                        RecipeXpAccess accessor = (RecipeXpAccess) cookingRecipe;
+                        RecipeXpAccessor accessor = (RecipeXpAccessor) cookingRecipe;
                         float original = accessor.getExperience();
                         accessor.setExperience(override);
                         modified++;
