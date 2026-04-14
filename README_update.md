@@ -1,19 +1,17 @@
 # 🧪 Configurable XP Simplifier
 
-A **Fabric** mod focused on removing XP orbs, simplifying XP collection, and providing **full control over XP sources and values**.
-
-All XP is redirected **directly to the player**, improving performance and making XP behavior predictable and configurable.
+A **Fabric** mod focused on providing full control over XP, giving full access to all xp values based on the source and providing **compatibility between vanilla and moded content**.
 
 
 ## 🎯 Prime Goals
 
-*   Completely remove **XP orbs**
-*   Redirect all dropped XP straight to the player
-*   Simplify the XP collecting mechanic
-*   Provide full control over:
+*   Full control over XP behaviour:
+    *  Direct xp gaining (no orbs)
+    *  Vanilla xp gaining (with orbs)
+*   Full control over:
     *   XP sources
     *   XP values
-    *   XP behavior for blocks/entities/crops/etc.
+*   User-friendly config (all split into sources)
 
 ***
 ***
@@ -27,8 +25,11 @@ The config is split into **few categories**:
 *   **Crops.json**
 *   **Smelting.json**
 *   **Trading.json**
+*   **Breeding.json**
+*   **Fishing.json**
+*   **Grindstone.json**
 
-More soon.
+
 
 Each category may contain **subcategories**.  
 Subcategories exist purely to keep the config **clean and tidy**.
@@ -103,9 +104,7 @@ Lower values reduce the total XP cost for full repairs.
 
 ***
 
-## WIP:
-Still under development, more options will be added soon. 
-
+## WIKI:
 Do you want to know more? Visit wiki -> [HERE](https://github.com/Qdeeme/XP-Simplifier/wiki)
 
 
@@ -113,7 +112,7 @@ Do you want to know more? Visit wiki -> [HERE](https://github.com/Qdeeme/XP-Simp
 
 ## TL;DR
 VERSIONS 1.0.+ :
-- Once updated to newer version -> create a backup of your existing configs and delete whole folder. Let the mod initialize the defaults and then replace all new maps with yours but be careful, few changes were made to versions 1.1+ :)
+- Once updated to newer version -> create a backup of your existing configs and delete whole folder. Let the mod initialize the defaults and then replace all new maps with yours but be careful, few changes were made to versions 1.+ :)
 
 
 
@@ -137,3 +136,24 @@ You are free to use, modify, and include it in modpacks.
 ***
 
 ⭐ If you find this mod useful, consider following the mod!
+
+# FAQ
+
+**Q: Do I need to restart for config changes?**
+- A: Yes. All configuration files require a restart to take effect.
+
+**Q: Can I use decimal XP for mining?**
+- A: No, only smelting supports decimal values. Blocks/Entities/Fishing/Breeding/Trading must be integers.
+
+**Q: How do I prevent XP duplication?**
+- A: Since the mods supports only 2 modes -> `"simple"` and `"vanilla"`, there's no XP duplication.
+
+**Q: What about negative values while braking blocks/killing entities?**
+- A: If `"OrbMode"` -> `"simple"`, all actions (despite smelting) accept negative values so players can be punished for killing entities like villagers or so.
+     Keep in mind that while setting up negative values -> `"min"` must be lower than `"max"`.
+
+**Q: Do experience bottles work without entity XP enabled?**
+- A: No, experience bottles are treated as entities, so they require `entityXpMode: "vanilla" || "on"`.
+
+**Q: What about modded content?**
+- A: All default/vanilla fallbacks exist, so once all options set to -> `on` || `vanilla`, all sources should work fine.

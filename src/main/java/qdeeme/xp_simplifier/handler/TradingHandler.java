@@ -11,53 +11,71 @@ import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.village.TradeOffer;
 import net.minecraft.village.VillagerProfession;
-
 import qdeeme.xp_simplifier.mixin.TradeOfferAccessor;
 import qdeeme.xp_simplifier.util.Config;
+import qdeeme.xp_simplifier.util.XpMode;
 
 
 
 
 public class TradingHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger("xp_simplifier/TradingHandler");
+    private static final XpMode PLAYERMODE  = Config.getTradingPlayerXpModeEnum();
+    private static final XpMode MERCHANTMODE = Config.getMerchantXpModeEnum();
 
     public static void register() {
         LOGGER.info("Registered Trading XP handler");
     }
 
-    public static void onTradeDone(MerchantEntity merchant, TradeOffer offer, ServerPlayerEntity player) {
-        if (!Config.isTradingXpEnabled()) {
-            return;
-        }
+    public static void onTradeDonePlayer(MerchantEntity merchant, TradeOffer offer, ServerPlayerEntity player) {
 
         // Handle player XP based on mode
-        String playerXpMode = Config.getTradingPlayerXpMode();
-        if (!"off".equalsIgnoreCase(playerXpMode)) {
-            if ("vanilla".equalsIgnoreCase(playerXpMode)) {
-                 // 3-6 XP, same as vanilla
-                player.addExperience(3 + player.getRandom().nextInt(4));
-            } else if ("on".equalsIgnoreCase(playerXpMode)) {
+        // In "vanilla" orbsmode, orb spawns with overwritten values via @ModifyArg
+        int vanillaXP = 3 + player.getRandom().nextInt(4);
+        switch (PLAYERMODE) {
+            case VANILLA:
+                player.addExperience(vanillaXP);
+                break;
+            case ON:
                 int playerXp = Config.getPlayerXp(getMerchantType(merchant));
-                if (playerXp >= 0) {
+                if (playerXp < 0) {
                     player.addExperience(playerXp);
+                    break;
                 }
-            }
+                int totalXP = playerXp >= 0 ? playerXp : vanillaXP;
+                player.addExperience(totalXP);
+                break;
+            case OFF:
+                break;
         }
-
+    }
+        
+    public static void onTradeDoneMerch(MerchantEntity merchant, TradeOffer offer, ServerPlayerEntity player) {
         if (merchant instanceof VillagerEntity villager) {
             // Handle merchant XP based on mode
-            String merchantMode = Config.getMerchantXpMode();
             TradeOfferAccessor accessor = (TradeOfferAccessor) offer;
-            if (!"off".equalsIgnoreCase(merchantMode)) {
-                if ("on".equalsIgnoreCase(merchantMode)) {
+            switch (MERCHANTMODE) {
+                case ON -> {
                     int merchantXp = Config.getMerchantXp(getMerchantType(merchant));
+                    int currentXp = accessor.getMerchantExperience();
                     if (merchantXp >= 0) {
-                        int currentXp = accessor.getMerchantExperience();
                         accessor.setMerchantExperience(merchantXp);
                         if (merchantXp != currentXp) {
-                            accessor.setMerchantExperience(merchantXp);
                             merchant.sendOffers(player, merchant.getDisplayName(), villager.getExperience());
+                            break;
                         }
+                    }
+                }
+                case VANILLA -> {
+                    villager.getExperience();
+                    break;
+                }
+                case OFF -> {
+                    int currentXp = accessor.getMerchantExperience();
+                    accessor.setMerchantExperience(0);
+                    if (currentXp != 0) {
+                        merchant.sendOffers(player, merchant.getDisplayName(), villager.getExperience());
+                        break;
                     }
                 }
             }

@@ -1,8 +1,8 @@
 package qdeeme.xp_simplifier.mixin;
 
-import net.minecraft.enchantment.Enchantments;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.screen.AnvilScreenHandler;
 import net.minecraft.screen.ForgingScreenHandler;
 import net.minecraft.screen.Property;
@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import qdeeme.xp_simplifier.util.Config;
+import qdeeme.xp_simplifier.util.RegistryCache;
 
 @Mixin(AnvilScreenHandler.class)
 public abstract class MixinMendingRework extends ForgingScreenHandler {
@@ -31,7 +32,7 @@ public abstract class MixinMendingRework extends ForgingScreenHandler {
     }
     
     @Inject(method = "updateResult", at = @At("TAIL"))
-    private void xp_simplifier$xpOnlyRepair(CallbackInfo ci) {
+    private void mendingXpOnlyRepair(CallbackInfo ci) {
         if (!Config.isXpRepairEnabled()) {
             return;
         }
@@ -50,16 +51,14 @@ public abstract class MixinMendingRework extends ForgingScreenHandler {
             return;
         }
         
-        // Get mending enchantment
-        var enchantmentRegistry = serverPlayer.getServer().getRegistryManager().get(RegistryKeys.ENCHANTMENT);
-        var mendingEntry = enchantmentRegistry.getEntry(Enchantments.MENDING);
-        
-        if (mendingEntry.isEmpty()) {
+        // Use cached Mending entry created at SERVER_STARTED via RegistryCache.init()
+        RegistryEntry<Enchantment> mendingEntry = RegistryCache.MENDING;
+        if (mendingEntry == null) {
             return;
         }
         
         // Check for mending enchantment
-        int mendingLevel = leftStack.getEnchantments().getLevel(mendingEntry.get());
+        int mendingLevel = leftStack.getEnchantments().getLevel(mendingEntry);
         if (mendingLevel <= 0) {
             return;
         }
@@ -73,8 +72,6 @@ public abstract class MixinMendingRework extends ForgingScreenHandler {
         }
 
         int levelsNeeded = MathHelper.ceil((float) currentDamage / 100.0F);
-        
-        // Get max cost from config
         int maxCost = Config.getMaxAnvilRepairCost();
         int finalCost = Math.min(levelsNeeded, maxCost);
         int repairAmount = finalCost * Config.getDurabilityPerLevel(); 
@@ -87,3 +84,4 @@ public abstract class MixinMendingRework extends ForgingScreenHandler {
         this.levelCost.set(finalCost);
     }
 }
+
