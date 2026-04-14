@@ -58,7 +58,7 @@ public class TradingHandler {
                 case ON -> {
                     int merchantXp = Config.getMerchantXp(getMerchantType(merchant));
                     int currentXp = accessor.getMerchantExperience();
-                    if (merchantXp >= 0) {
+                    if (merchantXp >= 0 || merchantXp <= 0) {
                         accessor.setMerchantExperience(merchantXp);
                         if (merchantXp != currentXp) {
                             merchant.sendOffers(player, merchant.getDisplayName(), villager.getExperience());
