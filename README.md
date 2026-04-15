@@ -1,4 +1,4 @@
-# 🧪 Configurable XP Simplifier
+# 🧪 Configurable XP Simplifier (Still a little buggy :) )
 
 A **Fabric** mod focused on providing full control over XP, giving full access to all xp values based on the source and providing **compatibility between vanilla and moded content**.
 
