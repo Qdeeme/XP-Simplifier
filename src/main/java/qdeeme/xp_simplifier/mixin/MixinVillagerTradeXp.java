@@ -1,12 +1,13 @@
 package qdeeme.xp_simplifier.mixin;
 
 import net.minecraft.entity.passive.MerchantEntity;
-import net.minecraft.entity.passive.VillagerEntity;
-import net.minecraft.entity.passive.WanderingTraderEntity;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
+
+import net.minecraft.entity.passive.VillagerEntity;
+import net.minecraft.entity.passive.WanderingTraderEntity;
 
 import qdeeme.xp_simplifier.handler.TradingHandler;
 import qdeeme.xp_simplifier.util.Config;
@@ -18,7 +19,6 @@ public class MixinVillagerTradeXp {
 
     private static OrbMode ORBMODE;
     private static XpMode PLAYERMODE;
-    
 
     // "vanilla" orb mode: modify the XP amount passed into the ExperienceOrbEntity constructor
     @ModifyArg(
@@ -35,17 +35,13 @@ public class MixinVillagerTradeXp {
         }
         if (ORBMODE == OrbMode.VANILLA) {
             MerchantEntity merchant = (MerchantEntity) (Object) this;
-            String merchantType = TradingHandler.getMerchantType(merchant);
-
+            int rawId = TradingHandler.getMerchantRawId(merchant);
             return switch (PLAYERMODE) {
                 case ON -> {
-                    int configXp = Config.getPlayerXp(merchantType);
-                    int totalXP = configXp >= 0 ? configXp : originalXp;
-                    yield totalXP;
+                    Integer configXp = Config.getPlayerXp(rawId);
+                    yield configXp != null ? configXp : originalXp;
                 }
-                case VANILLA -> {
-                    yield originalXp;
-                }
+                case VANILLA -> originalXp;
                 case OFF -> 0;
             };
         } else {
@@ -53,4 +49,3 @@ public class MixinVillagerTradeXp {
         }
     }
 }
-

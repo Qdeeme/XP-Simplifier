@@ -10,13 +10,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+
 import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.recipe.AbstractCookingRecipe;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
-
 
 import qdeeme.xp_simplifier.util.Config;
 import qdeeme.xp_simplifier.util.OrbMode;
@@ -60,7 +60,6 @@ public abstract class MixinFurnaceXp {
                     continue;
                 }
                 Recipe<?> recipe = recipeEntry.value();
-
                 if (recipe instanceof AbstractCookingRecipe cookingRecipe) {
                     totalXp += cookingRecipe.getExperience() * count;
                 }

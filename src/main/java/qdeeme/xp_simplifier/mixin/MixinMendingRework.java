@@ -1,14 +1,5 @@
 package qdeeme.xp_simplifier.mixin;
 
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.screen.AnvilScreenHandler;
-import net.minecraft.screen.ForgingScreenHandler;
-import net.minecraft.screen.Property;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.MathHelper;
-
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -16,6 +7,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.enchantment.Enchantments;
+import net.minecraft.item.ItemStack;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.screen.AnvilScreenHandler;
+import net.minecraft.screen.ForgingScreenHandler;
+import net.minecraft.screen.Property;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.math.MathHelper;
 import qdeeme.xp_simplifier.util.Config;
 import qdeeme.xp_simplifier.util.RegistryCache;
 
@@ -26,7 +27,6 @@ public abstract class MixinMendingRework extends ForgingScreenHandler {
     @Final
     private Property levelCost;
     
-    // Constructor required for extending ForgingScreenHandler
     public MixinMendingRework() {
         super(null, 0, null, null);
     }
@@ -51,15 +51,10 @@ public abstract class MixinMendingRework extends ForgingScreenHandler {
             return;
         }
         
-        // Use cached Mending entry created at SERVER_STARTED via RegistryCache.init()
-        RegistryEntry<Enchantment> mendingEntry = RegistryCache.MENDING;
-        if (mendingEntry == null) {
-            return;
-        }
         
         // Check for mending enchantment
-        int mendingLevel = leftStack.getEnchantments().getLevel(mendingEntry);
-        if (mendingLevel <= 0) {
+        RegistryEntry<Enchantment> mendingEntry = RegistryCache.MENDING;
+        if (mendingEntry == null) {
             return;
         }
         

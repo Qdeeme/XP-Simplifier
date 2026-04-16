@@ -25,19 +25,14 @@ public class BreedingHandler {
         if (BREEDINMODE == XpMode.OFF) {
             return;
         }
-        String entityTypeId = Registries.ENTITY_TYPE.getId(babyEntity.getType()).toString();
+        int rawId = Registries.ENTITY_TYPE.getRawId(babyEntity.getType());
         switch (BREEDINMODE) {
         case VANILLA:
             player.addExperience(1 + babyEntity.getRandom().nextInt(7));
             return;
         case ON:
-            int xp = Config.getBreedingXp(entityTypeId);
-            if (xp < 0) {
-                player.addExperience(xp);
-                return;
-            }
-            int xpAmount = xp >= 0 ? xp : (1 + babyEntity.getRandom().nextInt(7));
-            player.addExperience(xpAmount);
+            Integer configXp = Config.getBreedingXp(rawId);
+            player.addExperience(configXp != null ? configXp : (1 + babyEntity.getRandom().nextInt(7)));
             break;
         case OFF:
             break;

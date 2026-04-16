@@ -10,10 +10,9 @@ import net.minecraft.recipe.AbstractCookingRecipe;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeManager;
 import net.minecraft.registry.Registries;
-
 import qdeeme.xp_simplifier.mixin.CookingRecipeXpAccessor;
-import qdeeme.xp_simplifier.util.XpMode;
 import qdeeme.xp_simplifier.util.Config;
+import qdeeme.xp_simplifier.util.XpMode;
 
 
 
@@ -44,6 +43,7 @@ public class SmeltingHandler {
                             modified++;
                             break;
                         case VANILLA:
+                            accessor.setExperience(defaultXp);
                             break;
                         case ON:
                             String productId = Registries.ITEM.getId(result.getItem()).toString();

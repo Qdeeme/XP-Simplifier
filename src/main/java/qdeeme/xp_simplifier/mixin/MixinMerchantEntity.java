@@ -27,8 +27,6 @@ public abstract class MixinMerchantEntity {
 	@Shadow
 	public abstract int getExperience();
 
-	// "simple" mode: cancel orb via MixinServerWorld, call handler to award addExperience()
-	// handler also sets merchant XP via TradeOfferAccessor — must always run for that
 	@Inject(method = "trade", at = @At("TAIL"))
 	private void onSimpleTradeComplete(TradeOffer offer, CallbackInfo ci) {
 		

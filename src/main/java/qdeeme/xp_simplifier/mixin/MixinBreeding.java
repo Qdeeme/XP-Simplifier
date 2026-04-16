@@ -66,9 +66,9 @@ public abstract class MixinBreeding {
                 int vanillaXP = 1 + world.random.nextInt(6);
                 switch (BREEDINGXPMODE) {
                     case ON:
-                        String entityId = Registries.ENTITY_TYPE.getId(((AnimalEntity)(Object)this).getType()).toString();
-                        int configXp = Config.getBreedingXp(entityId);
-                        int totalXP = configXp >= 0 ? configXp : vanillaXP;
+                        int rawId = Registries.ENTITY_TYPE.getRawId(((AnimalEntity)(Object)this).getType());
+                        Integer configXp = Config.getBreedingXp(rawId);
+                        int totalXP = configXp != null ? configXp : vanillaXP;
                         ExperienceOrbEntity.spawn(world, orb.getPos(), totalXP);
                         return true;
                     case VANILLA:

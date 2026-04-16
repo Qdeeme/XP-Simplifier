@@ -30,20 +30,14 @@ public class TradingHandler {
     public static void onTradeDonePlayer(MerchantEntity merchant, TradeOffer offer, ServerPlayerEntity player) {
 
         // Handle player XP based on mode
-        // In "vanilla" orbsmode, orb spawns with overwritten values via @ModifyArg
         int vanillaXP = 3 + player.getRandom().nextInt(4);
         switch (PLAYERMODE) {
             case VANILLA:
                 player.addExperience(vanillaXP);
                 break;
             case ON:
-                int playerXp = Config.getPlayerXp(getMerchantType(merchant));
-                if (playerXp < 0) {
-                    player.addExperience(playerXp);
-                    break;
-                }
-                int totalXP = playerXp >= 0 ? playerXp : vanillaXP;
-                player.addExperience(totalXP);
+                Integer playerXp = Config.getPlayerXp(getMerchantRawId(merchant));
+                player.addExperience(playerXp != null ? playerXp : vanillaXP);
                 break;
             case OFF:
                 break;
@@ -56,13 +50,12 @@ public class TradingHandler {
             TradeOfferAccessor accessor = (TradeOfferAccessor) offer;
             switch (MERCHANTMODE) {
                 case ON -> {
-                    int merchantXp = Config.getMerchantXp(getMerchantType(merchant));
-                    int currentXp = accessor.getMerchantExperience();
-                    if (merchantXp >= 0 || merchantXp <= 0) {
+                    Integer merchantXp = Config.getMerchantXp(getMerchantRawId(merchant));
+                    if (merchantXp != null) {
+                        int currentXp = accessor.getMerchantExperience();
                         accessor.setMerchantExperience(merchantXp);
                         if (merchantXp != currentXp) {
                             merchant.sendOffers(player, merchant.getDisplayName(), villager.getExperience());
-                            break;
                         }
                     }
                 }
@@ -82,13 +75,13 @@ public class TradingHandler {
         }
     }
 
-    public static String getMerchantType(MerchantEntity merchant) {
+    public static int getMerchantRawId(MerchantEntity merchant) {
         if (merchant instanceof VillagerEntity villager) {
             VillagerProfession profession = villager.getVillagerData().getProfession();
-            return Registries.VILLAGER_PROFESSION.getId(profession).toString();
+            return Registries.VILLAGER_PROFESSION.getRawId(profession);
         } else if (merchant instanceof WanderingTraderEntity) {
-            return "minecraft:wandering_trader";
+            return Config.getWanderingTraderRawId();
         }
-        return "minecraft:unemployed";
+        return -1;
     }
 }

@@ -27,9 +27,9 @@ public class xp_simplifier implements ModInitializer {
         
         Config.load();
 
-        // Populate enchantment registry cache once the server registry manager is ready
         ServerLifecycleEvents.SERVER_STARTED.register(server -> RegistryCache.init(server));
 
+        
         // Register handlers
         BlockBreakHandler.register();
         ExperienceBottleHandler.register();

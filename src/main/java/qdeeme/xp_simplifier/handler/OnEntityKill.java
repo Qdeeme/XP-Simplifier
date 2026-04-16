@@ -25,14 +25,12 @@ public class OnEntityKill {
 	private static final XpMode  ENTITYMODE = Config.getEntityXpModeEnum();
 
 	public static void register() {
+		if (ORBMODE != OrbMode.SIMPLE || ENTITYMODE == XpMode.OFF) {
+        LOGGER.info("Entity kill XP handler skipped (orbMode={}, entityMode={})", ORBMODE, ENTITYMODE);
+        return;
+    }
 		ServerLivingEntityEvents.AFTER_DEATH.register((LivingEntity entity, DamageSource source) -> {
-			if (ORBMODE != OrbMode.SIMPLE) {
-				return;
-			}
 
-			if (ENTITYMODE == XpMode.OFF) {
-				return;
-			}
 			// Check if killed by a player
 			if (!(source.getAttacker() instanceof ServerPlayerEntity serverPlayer)) {
 				return;
@@ -43,7 +41,6 @@ public class OnEntityKill {
 				return;
 			}
 
-			String entityId = Registries.ENTITY_TYPE.getId(entity.getType()).toString();
 			int vanillaXP = entity.getXpToDrop((ServerWorld) entity.getWorld(), source.getAttacker());
 			switch (ENTITYMODE) {
 				case VANILLA:
@@ -51,24 +48,15 @@ public class OnEntityKill {
 					break;
 				case ON:
 					if (entity instanceof EnderDragonEntity dragon) {
-            			EnderDragonFight dragonFight = ((ServerWorld) dragon.getWorld()).getEnderDragonFight();
-            			if (dragonFight != null && dragonFight.hasPreviouslyKilled()) {
-                			int dragonRespawnedXP = Config.getEntityXp("minecraft:ender_dragon_respawned");
-               				serverPlayer.addExperience(dragonRespawnedXP >= 0 ? dragonRespawnedXP : vanillaXP);
-							return;
-						} else {
-							int dragonXP = Config.getEntityXp("minecraft:ender_dragon_first");
-							serverPlayer.addExperience(dragonXP >= 0 ? dragonXP : vanillaXP);
-							return;
-						}
+						EnderDragonFight dragonFight = ((ServerWorld) dragon.getWorld()).getEnderDragonFight();
+						boolean respawned = dragonFight != null && dragonFight.hasPreviouslyKilled();
+						Integer configXp = Config.getDragonXp(respawned);
+						serverPlayer.addExperience(configXp != null ? configXp : vanillaXP);
+					} else {
+						Integer configXp = Config.getEntityXp(Registries.ENTITY_TYPE.getRawId(entity.getType()));
+						serverPlayer.addExperience(configXp != null ? configXp : vanillaXP);
+
 					}
-					int xp = Config.getEntityXp(entityId);
-					if (xp < 0) {
-						serverPlayer.addExperience(xp);
-						return;
-					}
-					int totalXP = xp >= 0 ? xp : vanillaXP;
-					serverPlayer.addExperience(totalXP);
 					break;
 				case OFF:
 					break;

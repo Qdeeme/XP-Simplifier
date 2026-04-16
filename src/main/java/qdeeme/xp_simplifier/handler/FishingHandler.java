@@ -24,19 +24,14 @@ public class FishingHandler {
         
         switch (FISHINGMODE) {
             case VANILLA:
-                int xp = Config.getFishingXp("Global_Fishing");
-                player.addExperience(xp);
+                Integer globalXp = Config.getGlobalFishingXp();
+                player.addExperience(globalXp != null ? globalXp : (1 + player.getRandom().nextInt(6)));
                 break;
             case ON:
                 for (ItemStack stack : caughtItems) {
-                    String itemId = Registries.ITEM.getId(stack.getItem()).toString();
-                    int catchXp = Config.getFishingXp(itemId);
-                    if (catchXp < 0) {
-                        player.addExperience(catchXp);
-                        break;
-                    }
-                    int xpAmount = catchXp >= 0 ? catchXp : (1 + player.getRandom().nextInt(6));
-                    player.addExperience(xpAmount);
+                    int rawId = Registries.ITEM.getRawId(stack.getItem());
+                    Integer catchXp = Config.getFishingXp(rawId);
+                    player.addExperience(catchXp != null ? catchXp : (1 + player.getRandom().nextInt(6)));
                 }
                 break;
             case OFF:

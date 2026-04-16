@@ -59,15 +59,14 @@ public abstract class MixinFishingBobber {
                 int vanillaXP = 1 + world.random.nextInt(6);
                 switch (FISHINGXPMODE) {
                     case VANILLA:
-                        int configXp = Config.getFishingXp("Global_Fishing");
-                        correctXp = configXp >= 0 ? configXp : vanillaXP;
+                        Integer globalXp = Config.getGlobalFishingXp();
+                        correctXp = globalXp != null ? globalXp : vanillaXP;
                         break;
                     case ON:
                         if (itemCaught != null && !itemCaught.isEmpty()) {
                             ItemStack first = itemCaught.get(0);
-                            String itemId = Registries.ITEM.getId(first.getItem()).toString();
-                            int itemXp = Config.getFishingXp(itemId);
-                            correctXp = itemXp >= 0 ? itemXp : vanillaXP;
+                            Integer itemXp = Config.getFishingXp(Registries.ITEM.getRawId(first.getItem()));
+                            correctXp = itemXp != null ? itemXp : vanillaXP;
                         }
                         break;
                     case OFF:

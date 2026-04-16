@@ -4,11 +4,22 @@ package qdeeme.xp_simplifier.util;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+
+import net.minecraft.block.Block;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.entity.EntityType;
+import net.minecraft.item.Item;
+import net.minecraft.registry.Registries;
+import net.minecraft.util.Identifier;
+import net.minecraft.village.VillagerProfession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,15 +49,20 @@ public class Config {
 
 	private static ConfigData data = new ConfigData();
 	
-	// Index maps for O(1) lookups
-	private static final Map<String, XpValue> entityIndex = new LinkedHashMap<>();
-	public static final Map<String, XpValue> blockIndex = new LinkedHashMap<>();
-	private static final Map<String, XpValue> cropIndex = new LinkedHashMap<>();
+	// Index maps for O(1) lookups — all keyed by registry raw ID, no string alloc on every event
+	private static final Int2ObjectOpenHashMap<XpValue> entityIndex = new Int2ObjectOpenHashMap<>();
+	private static final Int2ObjectOpenHashMap<XpValue> blockIndex = new Int2ObjectOpenHashMap<>();
+	private static final Int2ObjectOpenHashMap<XpValue> cropIndex = new Int2ObjectOpenHashMap<>();
 	private static final Map<String, Float> recipeIndex = new LinkedHashMap<>();
-	private static final Map<String, TradingXpValues> tradingIndex = new LinkedHashMap<>();
-	private static final Map<String, XpValue> breedingIndex = new LinkedHashMap<>();
-	private static final Map<String, XpValue> fishingIndex = new LinkedHashMap<>();
-	private static final Map<String, XpValue> grindstoneIndex = new LinkedHashMap<>();
+	private static final Int2ObjectOpenHashMap<TradingXpValues> tradingIndex = new Int2ObjectOpenHashMap<>();
+	private static final Int2ObjectOpenHashMap<XpValue> breedingIndex = new Int2ObjectOpenHashMap<>();
+	private static final Int2ObjectOpenHashMap<XpValue> fishingIndex = new Int2ObjectOpenHashMap<>();
+	private static final HashMap<Identifier, XpValue> grindstoneIndex = new HashMap<>();
+
+	private static XpValue dragonFirstXp;
+	private static XpValue dragonRespawnedXp;
+	private static int wanderingTraderRawId = -1;
+	private static XpValue globalFishingXp;
 	
 	// Flags for quick checks
 	private static int durabilityPerLevelFlag;
@@ -224,35 +240,63 @@ public class Config {
 		breedingIndex.clear();
 		fishingIndex.clear();
 		grindstoneIndex.clear();
+		dragonFirstXp = null;
+		dragonRespawnedXp = null;
+		globalFishingXp = null;
+		wanderingTraderRawId = Registries.ENTITY_TYPE.getRawId(EntityType.WANDERING_TRADER);
 		
-		// Index all entities
 		if (data.Entities != null) {
 			for (EntitiesCategory category : data.Entities.values()) {
 				if (category.entities != null) {
-					entityIndex.putAll(category.entities);
+					for (Map.Entry<String, XpValue> entry : category.entities.entrySet()) {
+						String key = entry.getKey();
+						if (key.equals("minecraft:ender_dragon_first")) {
+							dragonFirstXp = entry.getValue();
+						} else if (key.equals("minecraft:ender_dragon_respawned")) {
+							dragonRespawnedXp = entry.getValue();
+						} else {
+							EntityType<?> type = Registries.ENTITY_TYPE.get(Identifier.tryParse(key));
+							if (type != null) {
+								entityIndex.put(Registries.ENTITY_TYPE.getRawId(type), entry.getValue());
+							} else {
+								LOGGER.warn("Unknown entity in Entities config: {}", key);
+							}
+						}
+					}
 				}
 			}
 		}
 		
-		// Index all blocks
 		if (data.Blocks != null) {
 			for (BlockCategory category : data.Blocks.values()) {
 				if (category.blocks != null) {
-					blockIndex.putAll(category.blocks);
+					for (Map.Entry<String, XpValue> entry : category.blocks.entrySet()) {
+						Block block = Registries.BLOCK.get(Identifier.tryParse(entry.getKey()));
+						if (block != null) {
+							blockIndex.put(Registries.BLOCK.getRawId(block), entry.getValue());
+						} else {
+							LOGGER.warn("Unknown block in Blocks config: {}", entry.getKey());
+						}
+					}
 				}
 			}
 		}
-		
-		// Index all crops
+
 		if (data.Crops != null) {
 			for (CropCategory category : data.Crops.values()) {
 				if (category.crops != null) {
-					cropIndex.putAll(category.crops);
+					for (Map.Entry<String, XpValue> entry : category.crops.entrySet()) {
+						Block block = Registries.BLOCK.get(Identifier.tryParse(entry.getKey()));
+						if (block != null) {
+							cropIndex.put(Registries.BLOCK.getRawId(block), entry.getValue());
+						} else {
+							LOGGER.warn("Unknown block in Crops config: {}", entry.getKey());
+						}
+					}
 				}
 			}
 		}
 		
-		// Index all recipes
 		if (data.Smelting != null) {
 			for (SmeltingCategory category : data.Smelting.values()) {
 				if (category.smelting != null) {
@@ -264,7 +308,19 @@ public class Config {
 		if (data.Trading != null) {
 			for (TradingCategory category : data.Trading.values()) {
 				if (category.trader != null) {
-					tradingIndex.putAll(category.trader);
+					for (Map.Entry<String, TradingXpValues> entry : category.trader.entrySet()) {
+						String key = entry.getKey();
+						if (key.equals("minecraft:wandering_trader")) {
+							tradingIndex.put(wanderingTraderRawId, entry.getValue());
+						} else {
+							VillagerProfession profession = Registries.VILLAGER_PROFESSION.get(Identifier.tryParse(key));
+							if (profession != null) {
+								tradingIndex.put(Registries.VILLAGER_PROFESSION.getRawId(profession), entry.getValue());
+							} else {
+								LOGGER.warn("Unknown villager profession in Trading config: {}", key);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -272,7 +328,14 @@ public class Config {
 		if (data.Breeding != null) {
 			for (BreedingCategory category : data.Breeding.values()) {
 				if (category.breeding != null) {
-					breedingIndex.putAll(category.breeding);
+					for (Map.Entry<String, XpValue> entry : category.breeding.entrySet()) {
+						EntityType<?> type = Registries.ENTITY_TYPE.get(Identifier.tryParse(entry.getKey()));
+						if (type != null) {
+							breedingIndex.put(Registries.ENTITY_TYPE.getRawId(type), entry.getValue());
+						} else {
+							LOGGER.warn("Unknown entity in Breeding config: {}", entry.getKey());
+						}
+					}
 				}
 			}
 		}
@@ -280,7 +343,19 @@ public class Config {
 		if (data.Fishing != null) {
 			for (FishingCategory category : data.Fishing.values()) {
 				if (category.fishing != null) {
-					fishingIndex.putAll(category.fishing);
+					for (Map.Entry<String, XpValue> entry : category.fishing.entrySet()) {
+						String key = entry.getKey();
+						if (key.equals("Global_Fishing")) {
+							globalFishingXp = entry.getValue();
+						} else {
+							Item item = Registries.ITEM.get(Identifier.tryParse(key));
+							if (item != null) {
+								fishingIndex.put(Registries.ITEM.getRawId(item), entry.getValue());
+							} else {
+								LOGGER.warn("Unknown item in Fishing config: {}", key);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -288,7 +363,14 @@ public class Config {
 		if (data.Grindstone != null) {
 			for (GrindstoneCategory category : data.Grindstone.values()) {
 				if (category.enchantments != null) {
-					grindstoneIndex.putAll(category.enchantments);
+					for (Map.Entry<String, XpValue> entry : category.enchantments.entrySet()) {
+						Identifier id = Identifier.tryParse(entry.getKey());
+						if (id != null) {
+							grindstoneIndex.put(id, entry.getValue());
+						} else {
+							LOGGER.warn("Unknown enchantment in Grindstone config: {}", entry.getKey());
+						}
+					}
 				}
 			}
 		}
@@ -437,93 +519,79 @@ public class Config {
 	}
 
 	// Get block XP with max age check (for crops)
-	public static int getBlockXp(String blockId, boolean isMaxAge) {
-		if (blockId == null) {
-			return -1;
-		}
-
+	public static Integer getBlockXp(int rawId, boolean isMaxAge) {
 		// First check crops with isMaxAge flag
-		XpValue cropValue = cropIndex.get(blockId);
+		XpValue cropValue = cropIndex.get(rawId);
 		if (cropValue != null) {
-			// Only give XP if crop is at max age
 			if (!isMaxAge) {
 				return 0;
 			}
 			return cropValue.calculateXp();
 		}
-		
+
 		// Then check regular blocks (no maturity requirement)
-		XpValue blockValue = blockIndex.get(blockId);
+		XpValue blockValue = blockIndex.get(rawId);
 		if (blockValue != null) {
 			return blockValue.calculateXp();
 		}
 
-		return -1;
+		return null;
 	}
 
 	// Overload for blocks without max age check
-	public static int getBlockXp(String blockId) {
-		return getBlockXp(blockId, false);
+	public static Integer getBlockXp(int rawId) {
+		return getBlockXp(rawId, false);
 	}
 
-	// Get entity XP - value or -1 if not found
-	public static int getEntityXp(String entityId) {
-		if (entityId == null) {
-			return -1; // Not in config
-		}
-
-		// Immutable map
-		XpValue xpValue = entityIndex.get(entityId);
-		return xpValue != null ? xpValue.calculateXp() : -1;
+	// Get entity XP — null if not in config, negative values valid
+	public static Integer getEntityXp(int rawId) {
+		XpValue xpValue = entityIndex.get(rawId);
+		return xpValue != null ? xpValue.calculateXp() : null;
 	}
 
-	public static int getPlayerXp(String merchantType) {
-		if (merchantType == null) {
-			return -1;
-		}
-
-		// Immutable map
-		TradingXpValues xpValues = tradingIndex.get(merchantType);
-		return xpValues != null ? xpValues.playerXp.calculateXp() : -1;
+	// Get dragon XP — null if not in config
+	public static Integer getDragonXp(boolean respawned) {
+		XpValue xpValue = respawned ? dragonRespawnedXp : dragonFirstXp;
+		return xpValue != null ? xpValue.calculateXp() : null;
 	}
 
-	public static int getMerchantXp(String merchantType) {
-		if (merchantType == null) {
-			return -1;
-		}
-
-		// Immutable map
-		TradingXpValues xpValues = tradingIndex.get(merchantType);
-		return xpValues != null ? xpValues.merchantXp.calculateXp() : -1;
+	// Get player trade XP — null if not in config
+	public static Integer getPlayerXp(int rawId) {
+		TradingXpValues xpValues = tradingIndex.get(rawId);
+		return xpValues != null ? xpValues.playerXp.calculateXp() : null;
 	}
 
-	public static int getBreedingXp(String entityId) {
-		if (entityId == null) {
-			return -1;
-		}
-
-		// Immutable map
-		XpValue xpValue = breedingIndex.get(entityId);
-		return xpValue != null ? xpValue.calculateXp() : -1;
+	// Get merchant XP — null if not in config
+	public static Integer getMerchantXp(int rawId) {
+		TradingXpValues xpValues = tradingIndex.get(rawId);
+		return xpValues != null ? xpValues.merchantXp.calculateXp() : null;
 	}
 
-	public static int getFishingXp(String catchId) {
-		if (catchId == null) {
-			return -1;
-		}
-
-		// Immutable map
-		XpValue xpValue = fishingIndex.get(catchId);
-		return xpValue != null ? xpValue.calculateXp() : -1;
+	public static int getWanderingTraderRawId() {
+		return wanderingTraderRawId;
 	}
 
-	public static int getGrindstoneXp(String enchantmentId) {
-		if (enchantmentId == null) {
-			return -1;
-		}
+	// Get breeding XP — null if not in config
+	public static Integer getBreedingXp(int rawId) {
+		XpValue xpValue = breedingIndex.get(rawId);
+		return xpValue != null ? xpValue.calculateXp() : null;
+	}
 
-		XpValue xpValue = grindstoneIndex.get(enchantmentId);
-		return xpValue != null ? xpValue.calculateXp() : -1;
+	// Get fishing XP by item raw ID — null if not in config
+	public static Integer getFishingXp(int rawId) {
+		XpValue xpValue = fishingIndex.get(rawId);
+		return xpValue != null ? xpValue.calculateXp() : null;
+	}
+
+	// Get global fishing XP (fallback for DEFAULT mode) — null if not in config
+	public static Integer getGlobalFishingXp() {
+		return globalFishingXp != null ? globalFishingXp.calculateXp() : null;
+	}
+
+	// Get grindstone XP — null if not in config
+	public static Integer getGrindstoneXp(Identifier id) {
+		XpValue xpValue = grindstoneIndex.get(id);
+		return xpValue != null ? xpValue.calculateXp() : null;
 	}
 
 	public static void setBlockXp(String category, String blockId, int min, int max) {
@@ -541,7 +609,8 @@ public class Config {
 			}
 			XpValue xpValue = min == max ? new XpValue(min) : new XpValue(min, max);
 			blockCategory.blocks.put(blockId, xpValue);
-			blockIndex.put(blockId, xpValue);
+			Block block = Registries.BLOCK.get(Identifier.tryParse(blockId));
+			blockIndex.put(Registries.BLOCK.getRawId(block), xpValue);
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -562,7 +631,8 @@ public class Config {
 			}
 			XpValue xpValue = min == max ? new XpValue(min) : new XpValue(min, max);
 			cropCategory.crops.put(blockId, xpValue);
-			cropIndex.put(blockId, xpValue);
+			Block block = Registries.BLOCK.get(Identifier.tryParse(blockId));
+			cropIndex.put(Registries.BLOCK.getRawId(block), xpValue);
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -583,7 +653,14 @@ public class Config {
 			}
 			XpValue xpValue = min == max ? new XpValue(min) : new XpValue(min, max);
 			entitiesCategory.entities.put(entityId, xpValue);
-			entityIndex.put(entityId, xpValue);
+			if (entityId.equals("minecraft:ender_dragon_first")) {
+				dragonFirstXp = xpValue;
+			} else if (entityId.equals("minecraft:ender_dragon_respawned")) {
+				dragonRespawnedXp = xpValue;
+			} else {
+				EntityType<?> type = Registries.ENTITY_TYPE.get(Identifier.tryParse(entityId));
+				entityIndex.put(Registries.ENTITY_TYPE.getRawId(type), xpValue);
+			}
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -604,7 +681,8 @@ public class Config {
 			}
 			XpValue xpValue = min == max ? new XpValue(min) : new XpValue(min, max);
 			breedingCategory.breeding.put(entityId, xpValue);
-			breedingIndex.put(entityId, xpValue);
+			EntityType<?> breedType = Registries.ENTITY_TYPE.get(Identifier.tryParse(entityId));
+			breedingIndex.put(Registries.ENTITY_TYPE.getRawId(breedType), xpValue);
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -652,7 +730,12 @@ public class Config {
 
 			TradingXpValues tradingData = new TradingXpValues(playerMin, playerMax, merchantMin, merchantMax);
 			tradingCategory.trader.put(merchantType, tradingData);
-			tradingIndex.put(merchantType, tradingData);
+			if (merchantType.equals("minecraft:wandering_trader")) {
+				tradingIndex.put(wanderingTraderRawId, tradingData);
+			} else {
+				VillagerProfession prof = Registries.VILLAGER_PROFESSION.get(Identifier.tryParse(merchantType));
+				tradingIndex.put(Registries.VILLAGER_PROFESSION.getRawId(prof), tradingData);
+			}
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -673,17 +756,18 @@ public class Config {
 			}
 			XpValue xpValue = min == max ? new XpValue(min) : new XpValue(min, max);
 			fishingCategory.fishing.put(catchId, xpValue);
-			fishingIndex.put(catchId, xpValue);
+			if (catchId.equals("Global_Fishing")) {
+				globalFishingXp = xpValue;
+			} else {
+				Item fishItem = Registries.ITEM.get(Identifier.tryParse(catchId));
+				fishingIndex.put(Registries.ITEM.getRawId(fishItem), xpValue);
+			}
 		} finally {
 			lock.writeLock().unlock();
 		}
 	}
 
-	// Helper methods to reduce duplication
 
-	/**
-	 * Copies all config flags from source to target ConfigData
-	 */
 	private static void copyConfigFlags(ConfigData source, ConfigData target) {
 		target.durabilityPerLevel = source.durabilityPerLevel;
 		target.maxAnvilRepairCost = source.maxAnvilRepairCost;
@@ -901,10 +985,10 @@ public class Config {
 			wood.blocks = new LinkedHashMap<>();
 			Blocks.put("Wood", wood);
 
-			// Stone 
-			BlockCategory stone = new BlockCategory();
-			stone.blocks = new LinkedHashMap<>();
-			Blocks.put("Stone", stone);
+			// Common blocks 
+			BlockCategory common = new BlockCategory();
+			common.blocks = new LinkedHashMap<>();
+			Blocks.put("Common Blocks", common);
 
 			// Nether 
 			BlockCategory nether = new BlockCategory();
@@ -926,8 +1010,10 @@ public class Config {
 			Blocks.put("Sculk", sculk);
 			}
 
+
+			
+			// crops
 			if (Crops == null || Crops.isEmpty()) {
-			// Crops category (XP for mature crops)
 			CropCategory crops = new CropCategory();
 			crops.crops = new LinkedHashMap<>();
 			crops.crops.put("minecraft:wheat", new XpValue(0));
@@ -939,8 +1025,9 @@ public class Config {
 			Crops.put("Minecraft Crops", crops);
 			}
 
+			
+			// smelting
 			if (Smelting == null || Smelting.isEmpty()) {
-			// Smelting/cooking xp per recipe based on product
 			SmeltingCategory smeltingOres = new SmeltingCategory();
 			smeltingOres.smelting = new LinkedHashMap<>();
 			smeltingOres.smelting.put("minecraft:iron_ingot", 0.7f);
@@ -1036,7 +1123,7 @@ public class Config {
 			if (Fishing == null || Fishing.isEmpty()) {
 			FishingCategory global = new FishingCategory();
 			global.fishing = new LinkedHashMap<>();
-			global.fishing.put("Global Fishing", new XpValue(1, 6));
+			global.fishing.put("Global_Fishing", new XpValue(1, 6));
 			Fishing.put("Global", global);
 
 
@@ -1097,7 +1184,7 @@ public class Config {
 			tools.enchantments.put("minecraft:fortune", new XpValue(1, 4));
 			tools.enchantments.put("minecraft:silk_touch", new XpValue(1, 4));
 			tools.enchantments.put("minecraft:unbreaking", new XpValue(1, 4));
-			tools.enchantments.put("minecraft:mending", new XpValue(5, 10));
+			tools.enchantments.put("minecraft:mending", new XpValue(5, 15));
 			Grindstone.put("Tools", tools);
 
 
@@ -1123,7 +1210,7 @@ public class Config {
 			bow.enchantments.put("minecraft:power", new XpValue(1, 4));
 			bow.enchantments.put("minecraft:punch", new XpValue(1, 4));
 			bow.enchantments.put("minecraft:flame", new XpValue(1, 4));
-			bow.enchantments.put("minecraft:infinity", new XpValue(1, 4));
+			bow.enchantments.put("minecraft:infinity", new XpValue(5, 10));
 			Grindstone.put("Bow", bow);
 
 

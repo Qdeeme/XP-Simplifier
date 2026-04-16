@@ -1,6 +1,8 @@
 package qdeeme.xp_simplifier.mixin;
 
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.projectile.thrown.ExperienceBottleEntity;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.hit.HitResult;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -43,8 +45,8 @@ public class MixinExperienceBottle {
 			return switch (ENTITYXPMODE) {
 				case VANILLA -> defaultXPValue;
 				case ON -> {
-					int configXp = Config.getEntityXp("minecraft:experience_bottle");
-					yield configXp >= 0 ? configXp : defaultXPValue;
+					Integer configXp = Config.getEntityXp(Registries.ENTITY_TYPE.getRawId(EntityType.EXPERIENCE_BOTTLE));
+					yield configXp != null ? configXp : defaultXPValue;
 				}
 				case OFF -> 0;
 			};
