@@ -31,7 +31,7 @@ public abstract class MixinGrindstoneXP$4 {
     private PlayerEntity capturedPlayer = null;
 
     @Unique
-    private int capturedEnchXp = 0;
+    private Integer capturedEnchXp = null;
 
     /**
      * Capture player + pre-calculate enchantment XP at the top of onTakeItem.
@@ -60,20 +60,20 @@ public abstract class MixinGrindstoneXP$4 {
         int vanillaXp = cir.getReturnValue();
         int modifiedXp = switch (GRINDSTONEMODE) {
             case VANILLA -> vanillaXp;
-            case ON -> capturedEnchXp > 0 ? capturedEnchXp : vanillaXp;
+            case ON -> capturedEnchXp;
             case OFF -> 0;
         };
 
         if (ORBMODE == OrbMode.SIMPLE) {
-            if (modifiedXp > 0 && capturedPlayer instanceof ServerPlayerEntity player) {
-                player.addExperience(modifiedXp > 0 ? modifiedXp : vanillaXp);
+            if (capturedPlayer instanceof ServerPlayerEntity player) {
+                player.addExperience(modifiedXp);
             }
             cir.setReturnValue(0);
         } else {
             cir.setReturnValue(modifiedXp);
         }
         capturedPlayer = null;
-        capturedEnchXp = 0;
+        capturedEnchXp = null;
     }
 
     @Unique
@@ -90,13 +90,13 @@ public abstract class MixinGrindstoneXP$4 {
             }
             int level = entry.getValue();
             Integer configXp = Config.getGrindstoneXp(Registries.ENCHANTMENT.getRawId(enchantment));
-            int xpPerLevel;
-            if (configXp != null && configXp > 0) {
-                xpPerLevel = configXp;
+            int uniXP;
+            if (configXp != null) {
+                uniXP = configXp;
             } else {
-                xpPerLevel = enchantment.getMinLevel() == enchantment.getMaxLevel() ? enchantment.getMinLevel() / 2 : (enchantment.getMinLevel() + enchantment.getMaxLevel());
+                uniXP = enchantment.getMinLevel() == enchantment.getMaxLevel() ? enchantment.getMinLevel() * 2 : (enchantment.getMinLevel() + enchantment.getMaxLevel());
             }
-            total += xpPerLevel * level;
+            total += uniXP * level;
         }
         return total;
     }

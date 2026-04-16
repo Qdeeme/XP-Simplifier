@@ -10,16 +10,6 @@ import java.util.Random;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-
-import net.minecraft.block.Block;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.EntityType;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
-import net.minecraft.village.VillagerProfession;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +18,15 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.block.Block;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.entity.EntityType;
+import net.minecraft.item.Item;
+import net.minecraft.registry.Registries;
+import net.minecraft.util.Identifier;
+import net.minecraft.village.VillagerProfession;
 
 public class Config {
 	private static final Logger LOGGER = LoggerFactory.getLogger("xp_simplifier/config");
@@ -57,12 +55,11 @@ public class Config {
 	private static final Int2ObjectOpenHashMap<XpValue> breedingIndex = new Int2ObjectOpenHashMap<>();
 	private static final Int2ObjectOpenHashMap<XpValue> fishingIndex = new Int2ObjectOpenHashMap<>();
 	private static final Int2ObjectOpenHashMap<XpValue> grindstoneIndex = new Int2ObjectOpenHashMap<>();
-	// Dragon special-case fields — not real ENTITY_TYPE registry entries
+
+	
 	private static XpValue dragonFirstXp;
 	private static XpValue dragonRespawnedXp;
-	// Wandering trader raw ID — resolved at buildIndexes() time
 	private static int wanderingTraderRawId = -1;
-	// Global_Fishing special-case field — not a real item ID
 	private static XpValue globalFishingXp;
 	
 	// Flags for quick checks
