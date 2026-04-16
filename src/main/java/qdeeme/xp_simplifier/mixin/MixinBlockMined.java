@@ -3,6 +3,8 @@ package qdeeme.xp_simplifier.mixin;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
@@ -33,6 +35,10 @@ public abstract class MixinBlockMined {
         if (player.isCreative() || player.isSpectator()) {
             return;
         }
+        if (EnchantmentHelper.getLevel(Enchantments.SILK_TOUCH, player.getMainHandStack()) > 0) {
+			return;
+        }
+
         if (ORBMODE == null) {
             ORBMODE = Config.getOrbModeEnum();
         }
@@ -50,6 +56,11 @@ public abstract class MixinBlockMined {
             BlockBreakHandler.clearBreakingPlayer();
             return;
         }
+        if (EnchantmentHelper.getLevel(Enchantments.SILK_TOUCH, player.getMainHandStack()) > 0) {
+            BlockBreakHandler.clearBreakingPlayer();
+			return;
+        }
+        
         if (ORBMODE == null) {
             ORBMODE = Config.getOrbModeEnum();
         }
