@@ -1,6 +1,6 @@
 # 🧪 Configurable XP Simplifier
 
-A **Fabric** mod focused on providing full control over XP, giving full access to all xp values based on the source and providing **compatibility between vanilla and moded content**. (NO achievementS)
+A **Fabric** mod focused on providing full control over XP, giving full access to all xp values based on the source and providing **compatibility between vanilla and moded content**.
 
 
 ## 🎯 Prime Goals
