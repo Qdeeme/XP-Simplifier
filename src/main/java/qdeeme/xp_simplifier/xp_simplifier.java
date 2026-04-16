@@ -6,7 +6,9 @@ import org.slf4j.LoggerFactory;
 
 import net.fabricmc.api.ModInitializer;
 import qdeeme.xp_simplifier.handler.BlockBreakHandler;
+import qdeeme.xp_simplifier.handler.BreedingHandler;
 import qdeeme.xp_simplifier.handler.ExperienceBottleHandler;
+import qdeeme.xp_simplifier.handler.FishingHandler;
 import qdeeme.xp_simplifier.handler.OnEntityKill;
 import qdeeme.xp_simplifier.handler.SmeltingHandler;
 import qdeeme.xp_simplifier.handler.TradingHandler;
@@ -30,6 +32,8 @@ public class xp_simplifier implements ModInitializer {
         OnEntityKill.register();
         SmeltingHandler.register();
         TradingHandler.register();
+        BreedingHandler.register();
+        FishingHandler.register();
         LOGGER.info("Successfully initialized " + MOD_ID);
     }
 }
