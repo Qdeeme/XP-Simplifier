@@ -1,5 +1,11 @@
 package qdeeme.xp_simplifier.mixin;
 
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
@@ -9,16 +15,7 @@ import net.minecraft.screen.ForgingScreenHandler;
 import net.minecraft.screen.Property;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.MathHelper;
-
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
 import qdeeme.xp_simplifier.util.Config;
-
 
 @Mixin(AnvilScreenHandler.class)
 public abstract class MixinMendingRework extends ForgingScreenHandler {
@@ -33,7 +30,7 @@ public abstract class MixinMendingRework extends ForgingScreenHandler {
     }
     
     @Inject(method = "updateResult", at = @At("TAIL"))
-    private void xp_simplifier$xpOnlyRepair(CallbackInfo ci) {
+    private void mendingXpOnlyRepair(CallbackInfo ci) {
         if (!Config.isXpRepairEnabled()) {
             return;
         }
@@ -52,6 +49,7 @@ public abstract class MixinMendingRework extends ForgingScreenHandler {
             return;
         }
         
+        
         // Check for mending enchantment
         int mendingLevel = EnchantmentHelper.getLevel(Enchantments.MENDING, leftStack);
         if (mendingLevel <= 0) {
@@ -66,19 +64,17 @@ public abstract class MixinMendingRework extends ForgingScreenHandler {
             return;
         }
 
-        // Calculate levels needed for repair 
         int levelsNeeded = MathHelper.ceil((float) currentDamage / 100.0F);
-        
-        // Get max cost from config
         int maxCost = Config.getMaxAnvilRepairCost();
         int finalCost = Math.min(levelsNeeded, maxCost);
-        int repairAmount = finalCost * Config.getDurabilityPerLevel();
+        int repairAmount = finalCost * Config.getDurabilityPerLevel(); 
+        
+        // Apply repair
         int newDamage = Math.max(0, currentDamage - repairAmount);
         resultStack.setDamage(newDamage);
         
-        // Set output stack
         this.output.setStack(0, resultStack);
-        // Set the XP cost
         this.levelCost.set(finalCost);
     }
 }
+
