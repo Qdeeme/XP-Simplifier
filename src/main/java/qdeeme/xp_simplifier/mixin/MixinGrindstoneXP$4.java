@@ -46,7 +46,6 @@ public abstract class MixinGrindstoneXP$4 {
         if (GRINDSTONEMODE == XpMode.ON) {
             GrindstoneScreenHandler grindstoneSlots = ((GrindstoneSlotAccessor)(Object)this).getOuterHandler();
             capturedEnchXp = doTheMathEnchantmentXp(grindstoneSlots.slots.get(0).getStack()) + doTheMathEnchantmentXp(grindstoneSlots.slots.get(1).getStack());
-            System.out.println("Captured grindstone XP: " + capturedEnchXp);
         }
     }
 

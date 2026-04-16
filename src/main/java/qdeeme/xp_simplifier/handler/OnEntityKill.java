@@ -25,14 +25,12 @@ public class OnEntityKill {
 	private static final XpMode  ENTITYMODE = Config.getEntityXpModeEnum();
 
 	public static void register() {
-		ServerLivingEntityEvents.AFTER_DEATH.register((LivingEntity entity, DamageSource source) -> {
-			if (ORBMODE != OrbMode.SIMPLE) {
-				return;
-			}
 
-			if (ENTITYMODE == XpMode.OFF) {
-				return;
-			}
+		if (ORBMODE != OrbMode.SIMPLE && ENTITYMODE == XpMode.OFF) {
+			LOGGER.info("Entity kill XP handler is disabled");
+			return;
+		}
+		ServerLivingEntityEvents.AFTER_DEATH.register((LivingEntity entity, DamageSource source) -> {
 			// Check if killed by a player
 			if (!(source.getAttacker() instanceof ServerPlayerEntity serverPlayer)) {
 				return;

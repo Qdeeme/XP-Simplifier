@@ -57,12 +57,11 @@ public class Config {
 	private static final Int2ObjectOpenHashMap<XpValue> breedingIndex = new Int2ObjectOpenHashMap<>();
 	private static final Int2ObjectOpenHashMap<XpValue> fishingIndex = new Int2ObjectOpenHashMap<>();
 	private static final Int2ObjectOpenHashMap<XpValue> grindstoneIndex = new Int2ObjectOpenHashMap<>();
-	// Dragon special-case fields — not real ENTITY_TYPE registry entries
+
+	
 	private static XpValue dragonFirstXp;
 	private static XpValue dragonRespawnedXp;
-	// Wandering trader raw ID — resolved at buildIndexes() time
 	private static int wanderingTraderRawId = -1;
-	// Global_Fishing special-case field — not a real item ID
 	private static XpValue globalFishingXp;
 	
 	// Flags for quick checks
