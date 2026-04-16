@@ -1,6 +1,6 @@
-# 🧪 Configurable XP Simplifier (Still a little buggy :) )
+# 🧪 Configurable XP Simplifier
 
-A **Fabric** mod focused on providing full control over XP, giving full access to all xp values based on the source and providing **compatibility between vanilla and moded content**.
+A **Fabric** mod focused on providing full control over XP, giving full access to all xp values based on the source and providing **compatibility between vanilla and moded content**. (NO achievementS)
 
 
 ## 🎯 Prime Goals
@@ -17,6 +17,7 @@ A **Fabric** mod focused on providing full control over XP, giving full access t
 ***
 
 ## 🧩 Configuration Categories
+**Current config version: 4.0**
 
 The config is split into **few categories**:
 
@@ -29,6 +30,8 @@ The config is split into **few categories**:
 *   **Fishing.json**
 *   **Grindstone.json**
 
+(no achievements)
+
 
 
 Each category may contain **subcategories**.  
@@ -39,6 +42,7 @@ Subcategories exist purely to keep the config **clean and tidy**.
 ## 🎲 XP Calculation Types
 
 Two XP calculation methods are supported:
+*supports negative values in "simple" OrbMode*
 
 *   **Random**
     *   Grants a random amount of XP between `min` and `max`
