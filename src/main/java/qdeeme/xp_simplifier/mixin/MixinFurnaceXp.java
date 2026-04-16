@@ -1,6 +1,13 @@
 package qdeeme.xp_simplifier.mixin;
 
 
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
@@ -11,16 +18,14 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import qdeeme.xp_simplifier.util.Config;
+import qdeeme.xp_simplifier.util.OrbMode;
 
 
 @Mixin(AbstractFurnaceBlockEntity.class)
 public abstract class MixinFurnaceXp {
+
+    private static OrbMode ORBMODE;
 
     @Shadow
     @Final
@@ -28,25 +33,33 @@ public abstract class MixinFurnaceXp {
 
 
     /**
-     * Intercepts dropExperience and gives XP directly instead of spawning orbs.
+     * Intercepts dropExperienceForRecipesUsed and gives XP directly in non-vanilla orb modes.
      */
     @Inject(method = "dropExperienceForRecipesUsed", at = @At("HEAD"), cancellable = true)
     private void giveDirectXp(ServerPlayerEntity serverPlayer, CallbackInfo ci) {
+        if (ORBMODE == null) {
+            ORBMODE = Config.getOrbModeEnum();
+        }
+
+        if (ORBMODE == OrbMode.VANILLA) {
+            return;
+        }
 
         // Calculate total XP from all recipes used
         float totalXp = 0.0f;
-        
+
         if (this.recipesUsed != null && !this.recipesUsed.isEmpty()) {
             AbstractFurnaceBlockEntity furnace = (AbstractFurnaceBlockEntity) (Object) this;
-            
+
             for (Object2IntMap.Entry<Identifier> entry : this.recipesUsed.object2IntEntrySet()) {
                 Identifier recipeId = entry.getKey();
                 int count = entry.getIntValue();
-                
+
                 var recipeEntry = furnace.getWorld().getServer().getRecipeManager().get(recipeId).orElse(null);
-                if (recipeEntry == null) continue;
+                if (recipeEntry == null) {
+                    continue;
+                }
                 Recipe<?> recipe = recipeEntry.value();
-                
                 if (recipe instanceof AbstractCookingRecipe cookingRecipe) {
                     totalXp += cookingRecipe.getExperience() * count;
                 }
@@ -54,12 +67,9 @@ public abstract class MixinFurnaceXp {
         }
 
         if (totalXp > 0) {
-            // Round to nearest integer
-            int xpAmount = MathHelper.floor(totalXp);
-            serverPlayer.addExperience(xpAmount);
+            serverPlayer.addExperience(MathHelper.floor(totalXp));
         }
-
-        // Clear the recipes used
         this.recipesUsed.clear();
+        ci.cancel();
     }
 }
