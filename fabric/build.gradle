@@ -1,0 +1,84 @@
+plugins {
+	id 'fabric-loom'
+	id 'maven-publish'
+}
+
+version = project.mod_version
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'Fabric'
+        url = 'https://maven.fabricmc.net/'
+    }
+    maven {
+        name = 'ModMenu'
+        url = 'https://maven.terraformersmc.com/releases'
+    }
+}
+
+configurations {
+    commonJava { canBeResolved = true }
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	
+    implementation "com.google.code.gson:gson:2.10.1"
+
+    // ModMenu – mod-list config button
+    modImplementation "com.terraformersmc:modmenu:11.0.2"
+
+    // Pull common sources in for compilation (no loader deps in common)
+    // Note: compileOnly project(':common') is intentionally omitted — common is mixed into
+    // this project's compileJava as raw sources via commonJava (see task below).
+    // The NeoForge-moddev-configured common module does not expose standard-jvm variants
+    // expected by Fabric Loom, so project-dependency resolution would fail in Gradle 9.
+    commonJava project(path: ':common', configuration: 'commonJava')
+}
+
+loom {
+    mixin {
+        defaultRefmapName.set("xp_simplifier.refmap.json")
+        useLegacyMixinAp = true   // retain mixin annotation processor for this project
+    }
+    log4jConfigs.from file("log4j.xml")
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+}
+
+tasks.named('compileJava', JavaCompile) {
+    dependsOn(configurations.commonJava)
+    source(configurations.commonJava)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    withSourcesJar()
+}
+jar {
+	inputs.property "archivesName", project.base.archivesName
+
+	from("LICENSE") {
+		rename { "${it}_${inputs.properties.archivesName}"}
+	}
+}

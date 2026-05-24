@@ -1,0 +1,8 @@
+plugins {
+    // see https://fabricmc.net/develop/ for new versions
+    id 'fabric-loom' version '1.15-SNAPSHOT' apply false
+    // used by common/ to get deobf Minecraft classes via NeoForm
+    id 'net.neoforged.moddev' version '0.1.110' apply false
+    // used by neoforge/ — must match version in neoforge/build.gradle
+    id 'net.neoforged.gradle.userdev' version '7.1.25' apply false
+}

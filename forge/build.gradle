@@ -1,0 +1,17 @@
+// ============================================================
+// Phase E — Forge bring-up: NOT YET STARTED (deferred)
+// ForgeGradle (net.minecraftforge.gradle) does not support
+// Gradle 9.x yet. This is a no-op stub so the forge subproject
+// does not block the root multiloader build.
+//
+// When ForgeGradle gains Gradle 9.x support (or when a Forge
+// adapter is ready), replace this stub with the real build.
+// ============================================================
+
+plugins {
+    id 'java'
+}
+
+// No sources configured — stub only.
+sourceSets.main.java.srcDirs = []
+sourceSets.main.resources.srcDirs = []

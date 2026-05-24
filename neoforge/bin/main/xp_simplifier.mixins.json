@@ -1,0 +1,25 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "qdeeme.xp_simplifier.mixin",
+  "refmap": "xp_simplifier.refmap.json",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "MixinServerWorld",
+    "MixinExperienceBottle",
+    "MixinMendingRework",
+    "accessors.CookingRecipeXpAccessor",
+    "MixinFurnaceXp",
+    "accessors.TradeOfferAccessor",
+    "MixinMerchantEntity",
+    "MixinBreeding",
+    "MixinFishingBobber",
+    "accessors.LovingPlayerAccessor",
+    "MixinBlockMined",
+    "MixinEntityXp",
+    "MixinVillagerTradeXp",
+    "MixinGrindstoneXP$4",
+    "accessors.GrindstoneSlotAccessor",
+    "accessors.ProjectileOwnerAccessor"
+  ]
+}

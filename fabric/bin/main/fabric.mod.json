@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "xp_simplifier",
+  "version": "2.0.5-1.21.0-1",
+  "name": "XP Simplifier",
+  "description": "A mod focused on providing full control over XP.",
+  "authors": [
+    "Qdeeme"
+  ],
+  "contact": {
+    "homepage": "https://modrinth.com/mod/xp-simplifier",
+    "sources": "https://github.com/Qdeeme/XP-Simplifier",
+    "issues": "https://github.com/Qdeeme/XP-Simplifier/issues",
+    "Twitter": "https://x.com/MeThatsnot"
+  },
+  "license": "MIT",
+  "icon": "assets/xp_simplifier/xp_simplifier_icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "qdeeme.xp_simplifier.xp_simplifier"
+    ],
+    "client": [
+      "qdeeme.xp_simplifier.xp_simplifier_client"
+    ],
+    "modmenu": [
+      "qdeeme.xp_simplifier.ModMenuApiImpl"
+    ]
+  },
+  "mixins": [
+    "xp_simplifier.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.9",
+    "fabric": "*",
+    "modmenu": "*"
+  }
+}

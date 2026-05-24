@@ -1,0 +1,45 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="MIT"
+issueTrackerURL="https://github.com/Qdeeme/XP-Simplifier/issues"
+
+# INFO
+[[mods]]
+modId="xp_simplifier"
+version="2.0.5-1.21+1"
+displayName="XP Simplifier"
+logoFile= "icon.png"
+displayTest="IGNORE_ALL_VERSION"
+
+# Credits
+authors= "Qdeeme"
+description=''' A mod focused on providing full control over XP.'''
+displayURL="https://modrinth.com/mod/xp-simplifier"
+
+
+# Configuration
+[[mixins]]
+config="xp_simplifier.mixins.json"
+#[[accessTransformers]]
+#file="META-INF/accesstransformer.cfg"
+
+# The coremods config file path is not configurable and is always loaded from META-INF/coremods.json
+[[dependencies.xp_simplifier]]
+    # the modid of the dependency
+    modId="neoforge" #mandatory
+    type="required"
+    versionRange="21.0.167,"
+    # An ordering relationship for the dependency.
+    # BEFORE - This mod is loaded BEFORE the dependency
+    # AFTER - This mod is loaded AFTER the dependency
+    ordering="NONE"
+    side="BOTH"
+
+# Here's another dependency
+[[dependencies.xp_simplifier]]
+    modId="minecraft"
+    type="required"
+    # This version range declares a minimum of the current minecraft version up to but not including the next major version
+    versionRange="[1.21,1.21.2)"
+    ordering="NONE"
+    side="BOTH"
