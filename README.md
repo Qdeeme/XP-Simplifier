@@ -1,25 +1,62 @@
-# 🧪 Configurable XP Simplifier
+# 🧪  XP Simplifier
 
-A **Fabric** mod focused on providing full control over XP, giving full access to all xp values based on the source and providing **compatibility between vanilla and moded content**.
+A mod focused on providing full control over XP, customizing XP values for every source independently with seamless support for both vanilla and modded content.
+
+## 💡 Why Use XP Simplifier?
+
+Perfect for:
+
+ - 🎮 Modpacks that need XP rebalancing
+ - ⚔️ Hardcore servers with punishment systems
+ - 🌾 Economy/progression servers
+ - 🧩 Heavy modpacks with inconsistent XP rewards
+ - 🛠 Players who want full control over progression
 
 
 ## 🎯 Prime Goals
 
-*   Full control over XP behaviour:
+*   Control over XP behaviour (2 modes):
     *  Direct xp gaining (no orbs)
     *  Vanilla xp gaining (with orbs)
 *   Full control over:
     *   XP sources
     *   XP values
+    * Multipliers since v.2.0.5
 *   User-friendly config (all split into sources)
+
+
+## 🧪 Features
+Version 2.0.5+:
+*   In-game config via menu/mods (Fabric requires [Mod Menu](https://modrinth.com/mod/modmenu) / NeoForge uses built-in config screen).
+*   Config changes apply instantly — no restart required.
+*   Client is optional, but required for in-game config menu, recommended for OPS.
+*   Config Sync (config changes via in-game menu are synced across all server players so modded player = config view).
+*   2FA verification for config changes -> OP permissions (level 2+) + User flag.
+   * If `null` + `OP (level 2+)` -> access denied.
+   * If `true` + `OP (level 2+)` -> access granted.
+   * If `true` + `non-OP` -> access denied.
+   * If `false` + `OP (level 2+)` -> access denied.
+   * If `false` + `non-OP` -> access denied.
+*   Commands access for OP players (level 2+) can be revoked via [LuckyPerms](https://modrinth.com/mod/luckperms).
+*   Per world instance config (config changes via in-game menu affect only current world instance).
+*   Translation support.
+
+### 🛠 Commands
+| Command | Description |
+|----------|-------------|
+|`/xps add <player> <true/false>` | Adds player to config change list (true = allow, false = deny)|
+|`/xps edit <player> <true/false>` | Edits player in config change list (true = allow, false = deny)|
+|`/xps delete <player>` | Deletes player from config change list|
+|`/xps list` | Lists all players in config change list|
+|`/xps mapview <true/false>` | Toggles map view for config categories (true = show, false = hide); affects all players globally unless per-player editing is enabled.|
+
 
 ***
 ***
 
 ## 🧩 Configuration Categories
-**Current config version: 4.0**
 
-The config is split into **few categories**:
+All sources are split into **categories**, each with its own config file:
 
 *   **Blocks.json**
 *   **Entities.json**
@@ -34,8 +71,16 @@ The config is split into **few categories**:
 
 
 
-Each category may contain **subcategories**.  
+Each category contains **subcategories**.
 Subcategories exist purely to keep the config **clean and tidy**.
+
+***
+
+## Multipliers since v.2.0.5
+*   Each source has a `multiplier` field that multiplies the final XP value by the specified amount.
+*   Multipliers are applied after all other calculations, so they can be used to adjust the final XP values without changing the base values for each source.
+*   Multipliers affects both per-source modes -> `ON` and `VANILLA`.
+*   Multipliers are set as a float value, so you can use values like `0.5` for half XP or `2.0` for double XP.
 
 ***
 
@@ -54,7 +99,7 @@ Two XP calculation methods are supported:
 
 ## 🔧 Mending Rework (Anvil-Based)
 
-Because XP orbs are removed, **Mending has been reworked** to function without them while remaining balanced.
+**Mending has been reworked** to function without them while remaining balanced mainly due to OrbMode -> "simple".
 
 
 ### 🔨 How Mending Works
@@ -65,30 +110,28 @@ Because XP orbs are removed, **Mending has been reworked** to function without t
 
 **Default formula:**
 
-_can be changed via **Config** file_
+Since ver.2.0.5, the XP cost formula takes `XP Point`s instead of `XP Levels`, so the cost is more granular and allows for more precise balancing.
+_can be changed via **Config** file or via **In-Game Menu** since v.2.0.5.
 
+ - DEFAULT:
 ```
-1 XP level = 100 durability points
+1 durability point = 2 XP_Points (min. 1lvl always)
 ```
-
+ - Example:
+```
+- Diamond Sword durability: 1561
+1561 * 2 = 3122 XP_Points
+```
+Level amount required depends on player level
 ***
 
 ### 📉 Max Cap Behavior
 
 `maxAnvilRepairCost` limits the **maximum XP levels** required for a full repair.
+For higher caps like `>30`, to avoid `To expensive!` message, [ANTE](https://modrinth.com/mod/ante) mod is recommended.
 
-#### Example
 
-```
-Diamond Sword durability: 1561
-```
-
-| maxAnvilRepairCost |XP Levels Needed |
-| ------------------ |---------------- |
-| 40 (default)       |16 levels        |
-| 10                 |10 levels        |
-
-Lower values reduce the total XP cost for full repairs.
+Lower values cap the total XP cost for full repairs.
 
 ***
 
@@ -102,8 +145,9 @@ Lower values reduce the total XP cost for full repairs.
 ## 🧩 Compatibility
 
 *   Minecraft **1.20-1.21.1**
-*   **Fabric**
+*   **Fabric** / **NeoForge (v. 2.0.5)**
 *   Server-side friendly
+*   Client is optional (only for in-game config menu ->  v.2.0.5)
 *   Compatible with modded blocks/entities/etc
 
 ***
@@ -118,6 +162,8 @@ Do you want to know more? Visit wiki -> [HERE](https://github.com/Qdeeme/XP-Simp
 VERSIONS 1.0.+ :
 - Once updated to newer version -> create a backup of your existing configs and delete whole folder. Let the mod initialize the defaults and then replace all new maps with yours but be careful, few changes were made to versions 1.+ :)
 
+VERSIONS 2.0.+ :
+- No map JSON file structure changes, but new fields were added to the main config. Once initialized -> all defaults load to memory, if any change made, config appears.
 
 
 ## KNOWN ISSUE:
@@ -134,8 +180,8 @@ Use [Tomes of Experience](https://modrinth.com/mod/tomes-of-experience) instead
 
 ## 📜 License
 
-This project is licensed under the **MIT License**.  
-You are free to use, modify, and include it in modpacks.
+This project is licensed under the **GNU General Public License** since ver. 2.0.5.  
+Feel free to use and include it in modpacks.
 
 ***
 
@@ -144,16 +190,17 @@ You are free to use, modify, and include it in modpacks.
 # FAQ
 
 **Q: Do I need to restart for config changes?**
-- A: Yes. All configuration files require a restart to take effect.
+- A: Since ver.2.0.5, no restart is needed for config changes to take effect.
+- For older versions -> configuration files are editable only manually and require a restart to take effect.
 
 **Q: Can I use decimal XP for mining?**
 - A: No, only smelting supports decimal values. Blocks/Entities/Fishing/Breeding/Trading must be integers.
 
 **Q: How do I prevent XP duplication?**
-- A: Since the mods supports only 2 modes -> `"simple"` and `"vanilla"`, there's no XP duplication.
+- A: Since the mod supports only 2 modes -> `"simple"` and `"vanilla"`, there's no XP duplication.
 
-**Q: What about negative values while braking blocks/killing entities?**
-- A: If `"OrbMode"` -> `"simple"`, all actions (despite smelting) accept negative values so players can be punished for killing entities like villagers or so.
+**Q: What about negative values while breaking blocks/killing entities?**
+- A: If `"OrbMode"` -> `"simple"`, all actions (except smelting and merchants) accept negative values so players can be punished for killing entities like villagers or so.
      Keep in mind that while setting up negative values -> `"min"` must be lower than `"max"`.
 
 **Q: Do experience bottles work without entity XP enabled?**
